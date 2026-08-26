@@ -39,5 +39,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Usuario>()
             .HasIndex(u => u.Email)
             .IsUnique();
+
+        // Precisão dos campos decimais
+        modelBuilder.Entity<Paciente>()
+            .Property(p => p.PesoKg)
+            .HasPrecision(6, 2);
+
+        modelBuilder.Entity<Insumo>()
+            .Property(i => i.QuantidadeAtual)
+            .HasPrecision(10, 3);
+
+        modelBuilder.Entity<Insumo>()
+            .Property(i => i.QuantidadeMinima)
+            .HasPrecision(10, 3);
+
+        modelBuilder.Entity<ExameInsumo>()
+            .Property(e => e.QuantidadeConsumida)
+            .HasPrecision(10, 3);
     }
 }
