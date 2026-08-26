@@ -1,111 +1,153 @@
-# Log de progresso — TG
+# Registro de Desenvolvimento — TG
 
-Registro macro de tudo que foi desenvolvido durante o TG. Serve como base para construir a documentação oficial.
-
----
-
-## Estrutura inicial do projeto
-
-- Repositório criado no GitHub: https://github.com/tamotsutozaki/TG
-- Estrutura de pastas definida: `frontend/` (Angular), `backend/` (.NET C#), `docs/`
-- Stack definida: Angular + .NET C# + SQL Server + Google Gemini API + Azure (Azure for Students)
-- Decisão: sistema desenvolvido para atender um único laboratório (escopo do TG conforme PTG)
-- Decisão: SQL Server escolhido por coesão com o stack .NET/Microsoft; hospedagem via Azure SQL Database (free tier)
-- Decisão: Angular escolhido no lugar de Next.js por maior coesão com o ecossistema .NET
+Este documento registra de forma narrativa e cronológica tudo que foi desenvolvido durante o Trabalho de Graduação. Seu propósito é servir como base para a redação do capítulo de desenvolvimento da documentação oficial, com formatação ABNT. O texto já está redigido em estilo acadêmico formal para facilitar essa transição.
 
 ---
 
-## Modelagem do banco de dados
+## 1. Visão Geral da Solução
 
-Definição das entidades e relacionamentos do sistema antes do início da implementação.
+O sistema desenvolvido neste trabalho consiste em uma plataforma web responsiva voltada à gestão do fluxo completo de trabalho de laboratórios de patologia veterinária, abrangendo desde o recebimento de solicitações de exames até a emissão e disponibilização dos laudos ao médico veterinário solicitante e ao tutor do animal.
 
-**Entidades definidas:**
-- `Usuario` — patologista autenticado (único ator com login no sistema)
-- `VetSolicitante` — médico veterinário solicitante, sem conta/login, identificado por CRMV
-- `Tutor` — dono do animal, sem conta/login, acessa apenas via código público
-- `Paciente` — animal vinculado a um tutor
-- `TipoExame` — tipo de exame laboratorial (ex: citologia, histopatologia)
-- `TemplateLaudo` — template de laudo vinculado a um tipo de exame, com versionamento
-- `Insumo` — item de estoque do laboratório
-- `ExameInsumo` — tabela de junção N:M entre TipoExame e Insumo, com quantidade consumida por exame
-- `Solicitacao` — solicitação de exame, com código público único para consulta externa
-- `Laudo` — laudo emitido pelo patologista, relação 1:1 com Solicitacao
-- `HistoricoStatus` — auditoria de todas as mudanças de status de uma solicitação
-
-**Decisões de modelagem:**
-- Tutor e VetSolicitante não possuem autenticação; são cadastrados no momento da solicitação pelo fluxo "busca ou cria"
-- `CodigoPublico` na Solicitacao é gerado automaticamente e usado pelo tutor para consultar status sem login
-- Ao emitir o laudo (status → Concluído), o sistema desconta automaticamente do estoque os insumos configurados para aquele tipo de exame via tabela `ExameInsumo`
-- `TemplateLaudo` possui campo `Versao` para preservar laudos antigos caso o template seja alterado
-- Chave do Google Gemini armazenada em variável de ambiente no backend (não no banco)
-
-**Fluxo de status da Solicitacao:**
-`Solicitado → AguardandoAmostra → AmostraRecebida → EmAnalise → Concluido`
+A solução foi concebida para atender a um único laboratório, conforme escopo definido no Projeto de Trabalho de Graduação, e estruturada de modo que sua arquitetura permita expansão futura sem necessidade de reescrita significativa. O sistema contempla três perfis de interação distintos: o patologista, único usuário autenticado da plataforma, que gerencia o fluxo interno de exames, laudos e estoque; o médico veterinário solicitante, que submete solicitações de exames e consulta o status de suas requisições sem necessidade de cadastro formal; e o tutor do animal, que pode consultar o andamento de um exame por meio de um código público único, sem acesso a informações sensíveis, em conformidade com os princípios da Lei Geral de Proteção de Dados (LGPD).
 
 ---
 
-## Configuração do projeto Angular (frontend)
+## 2. Definição da Stack Tecnológica
 
-- Projeto criado com Angular CLI 18 na pasta `frontend/`
-- Configurações: routing habilitado, SCSS como pré-processador, sem SSR
-- Ambiente de desenvolvimento local na porta `http://localhost:4200`
+A definição das tecnologias utilizadas no projeto foi orientada por critérios de coesão entre as camadas do sistema, maturidade das ferramentas, disponibilidade de recursos de hospedagem gratuita e adequação ao escopo do trabalho.
 
----
+### 2.1 Frontend — Angular
 
-## Configuração do backend .NET — Clean Architecture
+Para o desenvolvimento da interface do usuário, foi adotado o framework Angular, mantido pela Google. A escolha do Angular em substituição ao Next.js, tecnologia inicialmente considerada durante a elaboração do PTG, foi motivada pela maior coesão com o ecossistema Microsoft, ao qual o backend pertence. O Angular oferece uma estrutura fortemente opinada, com módulos, serviços e injeção de dependências nativos, o que favorece a organização do código em projetos de médio porte. O projeto foi criado com suporte a roteamento habilitado e SCSS como pré-processador de estilos, sem renderização do lado do servidor (SSR), uma vez que a aplicação opera como SPA (Single Page Application) e não apresenta requisitos de SEO que justificassem a complexidade adicional do SSR.
 
-Estrutura do backend definida com 4 projetos seguindo Clean Architecture com organização por feature:
+### 2.2 Backend — .NET 10 com C#
 
-- `LabPat.Domain` — entidades de domínio, interfaces de repositório e enums; sem dependências externas
-- `LabPat.Application` — features organizadas por funcionalidade (DTOs, InputModels, interfaces e implementações de serviços)
-- `LabPat.Infrastructure` — implementações dos repositórios, AppDbContext, migrations e serviços externos (Gemini, PDF)
-- `LabPat.Api` — controllers (finos, apenas orquestram chamadas aos serviços), Program.cs com registro de IoC
+A camada de backend foi desenvolvida utilizando a plataforma .NET na versão 10, com a linguagem C#. A escolha do .NET se deve à sua robustez, tipagem estática, desempenho elevado e ao amplo suporte ao desenvolvimento de APIs REST por meio do ASP.NET Core. A plataforma oferece ferramentas maduras para autenticação, injeção de dependências, ORM e testes, características essenciais para um sistema com o perfil proposto. A API foi estruturada utilizando controllers, padrão que oferece maior organização e clareza de responsabilidades em comparação com as Minimal APIs, abordagem mais recente do ecossistema .NET adequada a projetos de menor escala.
 
-**Referências entre projetos:**
-- Application → Domain
-- Infrastructure → Domain + Application
-- Api → Application + Infrastructure
+### 2.3 Banco de Dados — SQL Server com Entity Framework Core
 
-**Pacotes NuGet instalados:**
-- `Microsoft.EntityFrameworkCore.SqlServer` (Infrastructure) — ORM com suporte a SQL Server
-- `Microsoft.EntityFrameworkCore.Tools` (Infrastructure) — ferramentas de migration via CLI
-- `Microsoft.EntityFrameworkCore.Design` (Api) — suporte ao startup project para o CLI do EF
-- `Microsoft.AspNetCore.Authentication.JwtBearer` (Api) — autenticação JWT
+Para a persistência de dados, foi adotado o SQL Server como sistema gerenciador de banco de dados relacional, acessado por meio do ORM (Object-Relational Mapper) Entity Framework Core. A escolha pelo SQL Server, em detrimento de alternativas como PostgreSQL, foi motivada pela coesão com o stack Microsoft — .NET e SQL Server são tecnologias desenvolvidas pela mesma empresa e apresentam integração nativa e madura, especialmente por meio do Entity Framework Core, que oferece suporte pleno ao SQL Server incluindo tipos de dados específicos, migrations e scaffolding. Para o ambiente de desenvolvimento local, foi utilizado o SQL Server LocalDB, componente que acompanha o Visual Studio e permite a criação e gerenciamento de bancos de dados relacionais sem a necessidade de instalação de uma instância completa do SQL Server. As tabelas e estruturas do banco podem ser visualizadas diretamente pelo SQL Server Object Explorer, ferramenta integrada ao Visual Studio, acessível pelo menu View.
 
-**Configurações do Program.cs (Api):**
-- CORS configurado para aceitar requisições do Angular (`http://localhost:4200`)
-- EF Core registrado com connection string via `appsettings`
-- Autenticação JWT Bearer registrada
+### 2.4 Inteligência Artificial — Google Gemini API
+
+Para o módulo de extração multimodal de dados a partir de guias de solicitação enviadas como imagem, PDF ou áudio, será utilizada a API do Google Gemini, modelo de linguagem de grande escala multimodal desenvolvido pela Google. A integração com o Gemini será realizada exclusivamente na camada de backend, por meio de chamadas HTTP autenticadas com chave de API armazenada em variável de ambiente. Dessa forma, a chave de API nunca é exposta ao cliente, e o custo de uso da inteligência artificial é absorvido pelo laboratório, sem qualquer repasse ao médico veterinário solicitante. O tier gratuito da API do Gemini oferece cotas suficientes para o volume de requisições esperado em um laboratório de pequeno a médio porte.
+
+### 2.5 Hospedagem — Microsoft Azure
+
+A hospedagem da solução completa será realizada na plataforma Microsoft Azure, por meio do programa Azure for Students, que disponibiliza créditos e recursos gratuitos mediante comprovação de vínculo institucional. A escolha pelo Azure é coerente com o stack Microsoft adotado no projeto e permite hospedar os três componentes da solução sem custo adicional: o frontend Angular no Azure Static Web Apps (tier gratuito permanente), o backend .NET no Azure App Service (tier F1 gratuito), e o banco de dados SQL Server no Azure SQL Database (tier serverless gratuito, com 100.000 vCore-segundos e 32 GB de armazenamento por mês). Durante o desenvolvimento, toda a aplicação é executada localmente, com a migração para a nuvem prevista para a fase final do projeto, após validação completa das funcionalidades.
 
 ---
 
-## Entidades do domínio (LabPat.Domain)
+## 3. Arquitetura do Sistema
 
-Criação de todas as entidades, enums e interfaces base do domínio.
+### 3.1 Arquitetura Geral
 
-**Entidades criadas** em `LabPat.Domain/Entities/`:
-`EntityBase`, `Usuario`, `Tutor`, `Paciente`, `VetSolicitante`, `TipoExame`, `TemplateLaudo`, `Insumo`, `ExameInsumo`, `Solicitacao`, `Laudo`, `HistoricoStatus`
+O sistema é estruturado em três camadas principais: o frontend Angular, que se comunica com o backend por meio de requisições HTTP à API REST; o backend .NET, responsável pela lógica de negócio, autenticação, integração com serviços externos e acesso ao banco de dados; e o banco de dados SQL Server, que persiste todas as informações do sistema. A integração com a API do Google Gemini ocorre de forma lateral ao backend, sendo acionada apenas quando o médico veterinário solicitante envia um arquivo (imagem, PDF ou áudio) para criação automatizada de uma solicitação. A comunicação entre frontend e backend segue o protocolo HTTP com respostas no formato JSON, e a autenticação é realizada por meio de tokens JWT (JSON Web Token).
 
-**Enums criados** em `LabPat.Domain/Enums/`:
-- `StatusSolicitacao`: Solicitado, AguardandoAmostra, AmostraRecebida, EmAnalise, Concluido
-- `MetodoEntrada`: Manual, Imagem, PDF, Audio
-- `SexoPaciente`: Macho, Femea, NaoInformado
+### 3.2 Arquitetura do Backend — Clean Architecture
 
-**Interfaces criadas** em `LabPat.Domain/Interfaces/`:
-- `IRepository<T>` — contrato genérico de repositório (GetById, GetAll, Add, Update, Remove)
-- `IUnitOfWork` — contrato de persistência (CommitAsync)
+Para a organização interna do backend, foi adotada a Clean Architecture, padrão arquitetural que propõe a separação do código em camadas concêntricas com direções de dependência bem definidas. A adoção desse padrão foi motivada pela clareza de responsabilidades que ele proporciona: cada parte do código tem um papel explícito e bem delimitado, o que facilita a compreensão, manutenção e evolução do sistema. Dentro de cada camada, o código é organizado por funcionalidade (feature), de modo que tudo relacionado a uma determinada área do sistema — como solicitações de exames ou laudos — esteja agrupado, em vez de disperso em pastas genéricas de ViewModels, Services e afins.
 
----
+A solução foi dividida em quatro projetos distintos dentro de uma única solução .NET:
 
-## Banco de dados — migration inicial e LocalDB
+**LabPat.Domain** é a camada mais interna da arquitetura e não possui dependências externas. Nela estão definidas as entidades de domínio, que representam os conceitos centrais do negócio, bem como as interfaces que definem os contratos dos repositórios e do padrão Unit of Work. Por não depender de nenhuma outra camada, o Domain pode ser testado e evoluído de forma isolada.
 
-- `AppDbContext` configurado em `LabPat.Infrastructure/Data/` com todos os `DbSet` das entidades
-- Configurações explícitas no `OnModelCreating`: índice único em `CodigoPublico`, relação 1:1 em `Laudo`, chave composta em `ExameInsumo`, email único em `Usuario`, precisão definida para todos os campos `decimal`
-- Migration `InitialCreate` gerada e aplicada
-- Banco de dados `LabPat` criado no SQL Server LocalDB para desenvolvimento local
-- Connection string de desenvolvimento configurada em `appsettings.Development.json` (ignorado pelo git)
-- Para visualizar o banco: Visual Studio → `View > SQL Server Object Explorer` → `(localdb)\MSSQLLocalDB` → `Databases` → `LabPat`
+**LabPat.Application** depende apenas do Domain e concentra a lógica de negócio da aplicação. É organizada em subpastas por feature: cada funcionalidade do sistema possui sua própria pasta contendo os DTOs (objetos de transferência de dados), os modelos de entrada (InputModels), a interface do serviço e a implementação do serviço. Essa organização por feature elimina a necessidade de navegar entre múltiplas pastas genéricas para compreender o fluxo de uma funcionalidade específica.
+
+**LabPat.Infrastructure** depende do Domain e do Application e é responsável por tudo que envolve detalhes técnicos e infraestrutura: a implementação dos repositórios definidos no Domain, o contexto de banco de dados (AppDbContext) com suas migrations, e os serviços externos como a integração com o Google Gemini e a geração de PDFs dos laudos.
+
+**LabPat.Api** é a camada mais externa e depende do Application e do Infrastructure. Contém os controllers da API REST, que são intencionalmente finos — sua única responsabilidade é receber requisições HTTP, chamar o serviço adequado da camada Application e retornar a resposta. O Program.cs desta camada é responsável pelo registro de todas as dependências no container de IoC (Inversion of Control) nativo do ASP.NET Core, associando cada interface à sua implementação concreta.
+
+Essa organização garante que a direção das dependências sempre aponte para dentro: Api depende de Application e Infrastructure; Application depende de Domain; Infrastructure depende de Domain; Domain não depende de ninguém. Isso significa que o domínio e as regras de negócio são completamente independentes de frameworks, bancos de dados ou interfaces externas.
+
+Os pacotes NuGet instalados na solução são: `Microsoft.EntityFrameworkCore.SqlServer` e `Microsoft.EntityFrameworkCore.Tools` no projeto Infrastructure, para acesso ao SQL Server e suporte às migrations por linha de comando; `Microsoft.EntityFrameworkCore.Design` no projeto Api, necessário para que o projeto de startup seja reconhecido pelo CLI do Entity Framework durante a execução de migrations; e `Microsoft.AspNetCore.Authentication.JwtBearer` no projeto Api, para suporte à autenticação via tokens JWT.
 
 ---
 
-<!-- novas entradas abaixo -->
+## 4. Modelagem do Banco de Dados
+
+### 4.1 Critérios de Modelagem
+
+A modelagem do banco de dados foi realizada com base no levantamento de requisitos do sistema e nas especificidades do fluxo laboratorial de patologia veterinária descrito no PTG. Os principais critérios adotados foram: fidelidade ao processo real de trabalho do laboratório, aderência à LGPD na definição de quais dados seriam expostos publicamente, e suporte ao desconto automático de estoque vinculado à conclusão de exames.
+
+### 4.2 Entidades e Seus Papéis
+
+**Usuario** representa o patologista responsável pelo laboratório, único ator com acesso autenticado ao sistema. Armazena nome, e-mail, hash da senha e status de ativação da conta. O e-mail possui restrição de unicidade no banco de dados.
+
+**VetSolicitante** representa o médico veterinário que solicita os exames. Diferentemente do Usuario, o VetSolicitante não possui credenciais de acesso ao sistema — ele é identificado pelo número de registro no Conselho Regional de Medicina Veterinária (CRMV) e pelo estado de emissão. O cadastro ocorre automaticamente no momento da primeira solicitação, por meio do padrão "busca ou cria": caso já exista um registro com o mesmo CRMV, ele é reutilizado; caso contrário, um novo registro é criado.
+
+**Tutor** representa o proprietário do animal paciente. Assim como o VetSolicitante, o tutor não possui conta no sistema e é cadastrado no momento da solicitação. Seu papel no sistema é estritamente passivo: recebe o código público de consulta e acessa a página de status sem necessidade de autenticação.
+
+**Paciente** representa o animal submetido ao exame. Está vinculado a um tutor e armazena informações como espécie, raça, sexo, idade e peso. A relação entre tutor e paciente é de um para muitos, pois um mesmo tutor pode ter vários animais cadastrados.
+
+**TipoExame** representa as categorias de exames oferecidos pelo laboratório, como citologia, histopatologia, hemograma e análises bioquímicas. Cada tipo de exame possui um prazo estimado de conclusão em dias e pode ter um ou mais templates de laudo associados.
+
+**TemplateLaudo** armazena o conteúdo base do laudo para um determinado tipo de exame. O campo de versão permite que alterações futuras no template não afetem laudos já emitidos, pois cada laudo emitido registra seu conteúdo de forma independente.
+
+**Insumo** representa um item do estoque do laboratório, como reagentes, lâminas, frascos e demais materiais consumíveis. Possui campos para quantidade atual, quantidade mínima de alerta e unidade de medida.
+
+**ExameInsumo** é a tabela de junção que representa a relação muitos-para-muitos entre TipoExame e Insumo. Além das chaves estrangeiras, armazena a quantidade do insumo consumida por execução daquele tipo de exame. Essa estrutura permite que, ao concluir um exame, o sistema desconte automaticamente do estoque os insumos configurados para aquele tipo, sem intervenção manual do patologista.
+
+**Solicitacao** é a entidade central do sistema, representando uma requisição de exame desde sua criação até a conclusão. Armazena um código público alfanumérico único, gerado automaticamente no momento da criação, que é utilizado pelo tutor para consultar o status do exame sem necessidade de login. Registra também o método de entrada da solicitação — Manual, Imagem, PDF ou Áudio — e a URL do arquivo enviado, quando aplicável.
+
+**Laudo** representa o documento de diagnóstico emitido pelo patologista ao concluir a análise de uma amostra. Possui relação um-para-um com a Solicitacao, garantida por índice único no banco de dados. Armazena o conteúdo do laudo, a URL do arquivo PDF gerado e a referência ao patologista responsável pela emissão.
+
+**HistoricoStatus** registra cada mudança de status ocorrida em uma Solicitacao ao longo do seu ciclo de vida. Armazena o status anterior, o status novo, a data e hora da alteração, o usuário responsável pela mudança e uma observação opcional. Essa entidade garante rastreabilidade completa do processo e permite que o patologista visualize o histórico de cada exame.
+
+### 4.3 Fluxo de Status da Solicitação
+
+O ciclo de vida de uma solicitação de exame é representado por cinco estados sequenciais: **Solicitado**, estado inicial criado no momento do recebimento da requisição pelo sistema; **AguardandoAmostra**, indicando que a solicitação foi processada mas a amostra física ainda não chegou ao laboratório; **AmostraRecebida**, confirmando o recebimento físico da amostra; **EmAnalise**, sinalizando que o patologista iniciou a análise laboratorial; e **Concluido**, estado final atingido com a emissão do laudo, momento em que o desconto automático de estoque é acionado.
+
+### 4.4 Decisões de Modelagem
+
+Duas decisões de modelagem merecem destaque por seu impacto nas funcionalidades do sistema.
+
+A primeira é a geração do `CodigoPublico` na entidade Solicitacao. Esse campo recebe um valor alfanumérico curto e único, gerado automaticamente pelo backend no momento da criação da solicitação. O código é compartilhado pelo médico veterinário com o tutor do animal e permite que este consulte o status do exame em uma página pública, sem autenticação. A página exibe apenas informações não sensíveis — tipo de exame, status atual e data estimada de conclusão — em aderência aos princípios de minimização de dados da LGPD.
+
+A segunda é a integração entre estoque e exames por meio da tabela ExameInsumo. Ao configurar um tipo de exame, o patologista associa a ele os insumos consumidos em cada execução e a respectiva quantidade. Quando uma solicitação desse tipo de exame é concluída e o laudo é emitido, o sistema percorre automaticamente os registros de ExameInsumo correspondentes e deduz as quantidades do estoque, mantendo-o atualizado sem necessidade de registro manual pelo patologista.
+
+---
+
+## 5. Implementação das Entidades do Domínio
+
+As entidades do domínio foram implementadas no projeto LabPat.Domain, na pasta `Entities/`, e constituem a representação em código das tabelas e relacionamentos definidos na modelagem. Optou-se por criar uma classe base abstrata, denominada `EntityBase`, que centraliza os campos comuns a todas as entidades: a chave primária inteira auto-incrementada (`Id`) e o campo de data de criação (`CriadoEm`), inicializado automaticamente com a data e hora UTC do momento de criação do objeto. Essa abordagem elimina a duplicação desses campos em cada entidade individualmente.
+
+As propriedades de navegação (referências entre entidades) foram declaradas com inicialização em valores não nulos, seguindo as convenções do C# 8+ com tipos de referência anuláveis habilitados. Propriedades obrigatórias são inicializadas com `string.Empty` ou com `null!` para referências a entidades relacionadas, enquanto propriedades opcionais são declaradas com o operador `?`. Coleções de navegação são inicializadas com a sintaxe de coleção vazia `[]`, disponível a partir do C# 12.
+
+Os enumeradores do sistema foram definidos na pasta `Enums/` do projeto Domain: `StatusSolicitacao` com os cinco estados do ciclo de vida do exame; `MetodoEntrada` com as quatro formas de criação de solicitação suportadas pelo sistema; e `SexoPaciente` com as opções de sexo biológico do animal.
+
+---
+
+## 6. Configuração do Contexto de Banco de Dados
+
+O contexto de banco de dados foi implementado por meio da classe `AppDbContext`, localizada no projeto LabPat.Infrastructure, na pasta `Data/`. A classe herda de `DbContext` do Entity Framework Core e recebe as opções de configuração por injeção de dependência, por meio do construtor primário do C# 12. Cada entidade do domínio foi exposta como uma propriedade `DbSet<T>`, permitindo que o Entity Framework Core mapeie cada classe para sua respectiva tabela no banco de dados.
+
+As configurações específicas de mapeamento foram definidas no método `OnModelCreating`, seguindo o padrão do Entity Framework Core. As configurações estabelecidas incluem: a chave primária composta da entidade ExameInsumo, formada pelos campos `TipoExameId` e `InsumoId`; o índice único sobre o campo `CodigoPublico` da entidade Solicitacao, garantindo que cada solicitação possua um código de consulta pública exclusivo; o índice único sobre o campo `SolicitacaoId` da entidade Laudo, assegurando a relação um-para-um entre laudo e solicitação; o índice único sobre o campo `Email` da entidade Usuario; e a precisão explícita de todos os campos do tipo `decimal` do sistema — `PesoKg` com precisão (6, 2), e os campos de quantidade de Insumo e ExameInsumo com precisão (10, 3) — necessária para evitar truncamentos silenciosos de valores no SQL Server.
+
+O padrão Unit of Work foi implementado por meio da classe `UnitOfWork`, que encapsula a chamada ao método `SaveChangesAsync` do contexto. Essa abstração permite que os serviços da camada Application solicitem a persistência de múltiplas operações em uma única transação, sem depender diretamente do `AppDbContext`.
+
+---
+
+## 7. Migrations e Banco de Dados Local
+
+As migrations do Entity Framework Core foram utilizadas para geração automatizada do schema do banco de dados a partir das entidades de domínio, eliminando a necessidade de criação manual de scripts SQL. A migration inicial, denominada `InitialCreate`, foi gerada por meio da CLI do Entity Framework Core com o seguinte comando:
+
+```
+dotnet ef migrations add InitialCreate --project backend/LabPat.Infrastructure --startup-project backend/LabPat.Api
+```
+
+O parâmetro `--project` aponta para o projeto que contém o `AppDbContext` (Infrastructure), enquanto `--startup-project` indica o projeto de entrada da aplicação (Api), necessário para que o EF Core carregue as configurações de connection string definidas no `appsettings`.
+
+Após a geração da migration, o banco de dados foi criado e o schema aplicado com o comando:
+
+```
+dotnet ef database update --project backend/LabPat.Infrastructure --startup-project backend/LabPat.Api
+```
+
+O banco de dados `LabPat` foi criado no SQL Server LocalDB, instância leve do SQL Server distribuída junto ao Visual Studio, adequada para ambientes de desenvolvimento local. A connection string utilizada em ambiente de desenvolvimento é armazenada no arquivo `appsettings.Development.json`, que é ignorado pelo controle de versão para evitar exposição de credenciais. Em ambiente de produção, a connection string apontará para o Azure SQL Database, sem necessidade de alteração no código — apenas na configuração do ambiente.
+
+A migration `InitialCreate` gerou as seguintes tabelas no banco: `Usuarios`, `VetsSolicitantes`, `Tutores`, `Pacientes`, `TiposExame`, `TemplatesLaudo`, `Insumos`, `ExameInsumos`, `Solicitacoes`, `Laudos` e `HistoricoStatus`, além da tabela de controle interno `__EFMigrationsHistory`, utilizada pelo Entity Framework Core para rastrear quais migrations já foram aplicadas ao banco.
+
+---
+
+<!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
