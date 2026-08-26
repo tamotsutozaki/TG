@@ -4,9 +4,9 @@ frontend/dist/
 frontend/.angular/
 
 # .NET
-backend/bin/
-backend/obj/
-backend/*.user
+**/bin/
+**/obj/
+**/*.user
 
 # Ambiente
 .env
