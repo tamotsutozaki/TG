@@ -150,4 +150,40 @@ A migration `InitialCreate` gerou as seguintes tabelas no banco: `Usuarios`, `Ve
 
 ---
 
+## 8. Autenticação do Patologista
+
+A autenticação do patologista foi implementada por meio do padrão JWT (JSON Web Token), amplamente adotado em APIs REST modernas por sua natureza stateless: o servidor não armazena sessões, e cada requisição carrega em seu cabeçalho o token que comprova a identidade e as permissões do usuário autenticado.
+
+### 8.1 Organização em Camadas
+
+A implementação da autenticação respeitou rigorosamente a separação de responsabilidades definida pela Clean Architecture. Na camada de domínio, foi adicionada a interface `IUsuarioRepository`, que estende o repositório genérico `IRepository<Usuario>` com o método `GetByEmailAsync`, utilizado para localizar o usuário pelo e-mail informado no login.
+
+Na camada de aplicação, foram criadas duas interfaces de suporte no namespace `Application.Common`: `IPasswordHasher`, responsável por abstrair o mecanismo de hashing e verificação de senhas, e `ITokenGenerator`, responsável por abstrair a geração do token JWT. Essa separação garante que a camada de aplicação não dependa diretamente de bibliotecas de infraestrutura como BCrypt ou as classes de JWT do .NET — ela conhece apenas os contratos.
+
+A feature de autenticação foi organizada na pasta `Application/Features/Auth/`, contendo: `LoginInput`, record que representa os dados de entrada do login (e-mail e senha); `AuthDto`, record que representa a resposta bem-sucedida do login (token, nome e e-mail do usuário); `IAuthService`, interface do serviço; e `AuthService`, implementação do serviço de autenticação. O `AuthService` recebe por injeção de dependência o `IUsuarioRepository`, o `IPasswordHasher` e o `ITokenGenerator`, buscando o usuário pelo e-mail, verificando a senha e, em caso de sucesso, delegando a geração do token ao `ITokenGenerator`.
+
+Na camada de infraestrutura, as implementações concretas foram criadas na pasta `Infrastructure/Security/`: `BcryptPasswordHasher`, que utiliza a biblioteca BCrypt.Net-Next para realizar o hashing e a verificação de senhas com o algoritmo BCrypt; e `JwtTokenGenerator`, que utiliza a biblioteca `System.IdentityModel.Tokens.Jwt` para gerar tokens assinados com o algoritmo HMAC-SHA256, incluindo nos claims do token o identificador, o e-mail e o nome do patologista. As configurações do token — emissor, audiência, tempo de expiração e chave secreta — são lidas do arquivo de configuração via `IConfiguration`, permitindo que valores sensíveis, como a chave secreta, sejam definidos por variáveis de ambiente em produção sem alteração de código.
+
+### 8.2 Endpoint de Login
+
+O endpoint de autenticação foi exposto por meio do `AuthController`, localizado na camada de Api. O controller responde requisições `POST` na rota `/api/auth/login`, recebendo o `LoginInput` no corpo da requisição. Em caso de credenciais inválidas, retorna o status HTTP 401 (Unauthorized) com uma mensagem de erro genérica — sem indicar se o e-mail ou a senha estão incorretos, por razão de segurança. Em caso de sucesso, retorna o status HTTP 200 com o `AuthDto` contendo o token e os dados básicos do usuário.
+
+### 8.3 Configuração do JWT no Pipeline
+
+O `Program.cs` foi atualizado para configurar corretamente o pipeline de autenticação JWT do ASP.NET Core. Os parâmetros de validação do token definem que o servidor deve verificar o emissor, a audiência, o tempo de vida e a assinatura do token em toda requisição recebida. A chave secreta utilizada para assinar e verificar os tokens é lida da configuração e nunca é exposta em código-fonte ou no repositório.
+
+### 8.4 Registro de Dependências
+
+O registro de todas as dependências foi centralizado no `Program.cs` da Api, vinculando cada interface à sua implementação concreta no container de IoC do ASP.NET Core: `IUsuarioRepository` → `UsuarioRepository`; `IUnitOfWork` → `UnitOfWork`; `IPasswordHasher` → `BcryptPasswordHasher`; `ITokenGenerator` → `JwtTokenGenerator`; `IAuthService` → `AuthService`. Todos os registros utilizam o ciclo de vida `Scoped`, adequado para operações que devem ser criadas e destruídas a cada requisição HTTP.
+
+### 8.5 Seed de Dados para Desenvolvimento
+
+Para viabilizar os testes durante o desenvolvimento, foi criada a classe estática `DbSeeder`, localizada em `Infrastructure/Seeding/`. Ao inicializar a aplicação em ambiente de desenvolvimento, o `Program.cs` verifica se existe algum usuário cadastrado no banco e, caso não exista, insere automaticamente um usuário padrão com e-mail `admin@labpat.com` e senha `Admin@123`, com a senha armazenada como hash BCrypt. Esse comportamento ocorre apenas em ambiente de desenvolvimento, sendo completamente desabilitado em produção.
+
+### 8.6 Segurança das Configurações
+
+A chave secreta do JWT, essencial para a integridade dos tokens, é armazenada exclusivamente no arquivo `appsettings.Development.json`, que é ignorado pelo sistema de controle de versão por meio do `.gitignore`. O arquivo `appsettings.json`, presente no repositório, contém apenas a estrutura de configuração sem valores sensíveis. Em produção, a chave será fornecida por variável de ambiente configurada no Azure App Service, seguindo a prática recomendada de separação entre configuração e código.
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
