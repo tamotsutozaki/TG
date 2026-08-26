@@ -1,4 +1,4 @@
-@LabPat.Api_HostAddress = http://localhost:5045
+@LabPat.Api_HostAddress = http://localhost:5172
 
 GET {{LabPat.Api_HostAddress}}/weatherforecast/
 Accept: application/json

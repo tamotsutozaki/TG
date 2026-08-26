@@ -1,5 +1,5 @@
+using LabPat.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using LabPat.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,9 +24,7 @@ builder.Services.AddAuthentication().AddJwtBearer();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
-}
 
 app.UseHttpsRedirection();
 app.UseCors("Angular");
