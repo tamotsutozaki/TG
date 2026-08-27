@@ -438,4 +438,26 @@ Quando não há laudo, o botão "Emitir Laudo" exibe um formulário de texto par
 
 ---
 
+## 16. Módulos de Tipos de Exame e Insumos (Frontend)
+
+### 16.1 Padrão de Dialog no Angular Material
+
+Ambas as páginas utilizam o `MatDialog` do Angular Material para operações de criação, edição e ajuste — padrão adequado para formulários curtos que não justificam navegação para uma página separada. Os componentes de dialog foram definidos no mesmo arquivo do componente principal, aproveitando o padrão de múltiplos componentes por arquivo permitido em Angular standalone. Cada dialog recebe e retorna dados por meio de `MAT_DIALOG_DATA` e `MatDialogRef`, mantendo a comunicação desacoplada do componente pai.
+
+### 16.2 Tipos de Exame
+
+A página de tipos de exame exibe todos os tipos cadastrados em uma tabela Material com colunas de nome, prazo estimado, status (Ativo/Inativo) e ações. As ações disponíveis por linha são: gerenciar templates (abre dialog de templates), editar (abre dialog de criação/edição pré-preenchido) e desativar (soft delete).
+
+O dialog de criação/edição contém os campos nome, descrição (opcional) e prazo estimado em dias, com validação de campos obrigatórios.
+
+O dialog de templates exibe todos os templates existentes para o tipo de exame (em ordem decrescente de versão) e permite adicionar um novo template por meio de um textarea. O versionamento é automático no backend — cada novo template recebe o número da versão anterior mais um.
+
+### 16.3 Insumos e Controle de Estoque
+
+A página de insumos exibe todos os itens de estoque ativos com as colunas: nome, unidade de medida, quantidade atual, quantidade mínima, status e ações. Linhas de insumos com estoque abaixo do mínimo recebem destaque visual (fundo amarelo claro) e um ícone de alerta, tornando imediata a identificação de itens que precisam de reposição.
+
+As ações disponíveis são: ajustar quantidade (abre dialog com a quantidade atual pre-carregada para correção manual), editar cadastro e desativar. O dialog de ajuste de quantidade permite ao patologista registrar entradas de novos itens no estoque ou corrigir divergências após inventário físico, sem afetar a configuração do insumo (nome, unidade, mínimo).
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
