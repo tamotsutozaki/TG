@@ -412,4 +412,30 @@ A página `/consulta/:codigo` exibe informações mínimas de uma solicitação 
 
 ---
 
+## 15. Módulo de Solicitações (Frontend)
+
+### 15.1 Serviços HTTP
+
+Foram criados cinco serviços Angular em `core/services/`: `SolicitacaoService`, `TipoExameService`, `InsumoService`, `LaudoService` e `GeminiService`. Todos utilizam `HttpClient` e são fornecidos na raiz da aplicação. O token JWT é adicionado automaticamente pelo interceptor configurado anteriormente.
+
+### 15.2 Listagem de Solicitações
+
+A página de listagem exibe todas as solicitações em uma `MatTable` com as colunas: código público, tipo de exame, paciente, veterinário, status (chip colorido por estado) e data de criação. O clique em qualquer linha navega para o detalhe. Um estado vazio é exibido quando não há solicitações.
+
+### 15.3 Nova Solicitação com Extração por IA
+
+A página de nova solicitação organiza o formulário em seções: método de entrada, exame, médico veterinário, tutor e paciente. O método de entrada é selecionado por `MatButtonToggleGroup` com as opções Manual, Foto da Guia, PDF e Áudio.
+
+Quando o usuário escolhe um método baseado em arquivo e clica em "Extrair com IA", o arquivo é enviado ao endpoint `/api/gemini/extrair`. Os dados retornados são mapeados automaticamente para os controles do formulário reativo — incluindo a correspondência por substring entre o tipo de exame extraído e os tipos cadastrados. O usuário revisa os dados pré-preenchidos antes de submeter.
+
+### 15.4 Detalhe da Solicitação
+
+A página de detalhe apresenta: timeline visual de status com indicadores circulares, dados do paciente e tutor, dados do exame e veterinário, seção de laudo e histórico de mudanças de status. O patologista pode avançar o status diretamente na página com observação opcional.
+
+### 15.5 Emissão de Laudo e Download de PDF
+
+Quando não há laudo, o botão "Emitir Laudo" exibe um formulário de texto para o patologista redigir o conteúdo. Ao confirmar, o backend cria o laudo, transiciona para Concluído e desconta o estoque. Se o laudo já existe, um botão "Baixar PDF" chama `/api/laudos/{id}/pdf`, recebe o blob e aciona o download via `URL.createObjectURL`.
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->

@@ -1,0 +1,166 @@
+<div class="page-header">
+  <button mat-icon-button (click)="voltar()"><mat-icon>arrow_back</mat-icon></button>
+  @if (solicitacao) {
+    <h2>Solicitação <code>{{ solicitacao.codigoPublico }}</code></h2>
+    <span class="status-chip {{ solicitacao.status }}">{{ statusLabel(solicitacao.status) }}</span>
+  }
+</div>
+
+@if (loading) {
+  <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+} @else if (solicitacao) {
+
+  <!-- Timeline de status -->
+  <mat-card class="secao">
+    <mat-card-header><mat-card-title>Progresso</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <div class="status-timeline">
+        @for (s of statusOrdem; track s; let i = $index) {
+          <div class="status-step" [class.ativo]="i <= statusAtualIndex" [class.atual]="i === statusAtualIndex">
+            <div class="step-dot">
+              @if (i < statusAtualIndex) { <mat-icon>check</mat-icon> }
+              @else { <span>{{ i + 1 }}</span> }
+            </div>
+            <span class="step-label">{{ statusLabel(s) }}</span>
+          </div>
+          @if (i < statusOrdem.length - 1) {
+            <div class="step-connector" [class.ativo]="i < statusAtualIndex"></div>
+          }
+        }
+      </div>
+
+      @if (proximos.length > 0 && solicitacao.status !== 'Concluido') {
+        <mat-divider class="mt-2 mb-2"></mat-divider>
+        <div class="status-update-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Avançar para</mat-label>
+            <mat-select [formControl]="novoStatus">
+              @for (s of proximos; track s) {
+                <mat-option [value]="s">{{ statusLabel(s) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="obs-field">
+            <mat-label>Observação (opcional)</mat-label>
+            <input matInput [formControl]="observacao">
+          </mat-form-field>
+          <button mat-raised-button color="primary" (click)="atualizarStatus()"
+            [disabled]="!novoStatus.value || atualizandoStatus">
+            @if (atualizandoStatus) { <mat-spinner diameter="18"></mat-spinner> }
+            @else { Atualizar Status }
+          </button>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Informações -->
+  <div class="grid-info">
+    <mat-card class="secao">
+      <mat-card-header><mat-card-title>Paciente</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <div class="info-item"><span class="label">Nome</span><span>{{ solicitacao.paciente.nome }}</span></div>
+        <div class="info-item"><span class="label">Espécie</span><span>{{ solicitacao.paciente.especie }}</span></div>
+        @if (solicitacao.paciente.raca) {
+          <div class="info-item"><span class="label">Raça</span><span>{{ solicitacao.paciente.raca }}</span></div>
+        }
+        <div class="info-item"><span class="label">Sexo</span><span>{{ solicitacao.paciente.sexo }}</span></div>
+        @if (solicitacao.paciente.pesoKg) {
+          <div class="info-item"><span class="label">Peso</span><span>{{ solicitacao.paciente.pesoKg }} kg</span></div>
+        }
+        <mat-divider class="mt-1 mb-1"></mat-divider>
+        <div class="info-item"><span class="label">Tutor</span><span>{{ solicitacao.tutor.nome }}</span></div>
+        <div class="info-item"><span class="label">Telefone</span><span>{{ solicitacao.tutor.telefone }}</span></div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="secao">
+      <mat-card-header><mat-card-title>Exame e Solicitante</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <div class="info-item"><span class="label">Tipo</span><span>{{ solicitacao.tipoExame.nome }}</span></div>
+        <div class="info-item"><span class="label">Método</span><span>{{ solicitacao.metodoEntrada }}</span></div>
+        @if (solicitacao.dataEstimadaConclusao) {
+          <div class="info-item">
+            <span class="label">Previsão</span>
+            <span>{{ solicitacao.dataEstimadaConclusao | date:'dd/MM/yyyy' }}</span>
+          </div>
+        }
+        @if (solicitacao.descricaoClinica) {
+          <div class="info-item desc">
+            <span class="label">Descrição Clínica</span>
+            <span>{{ solicitacao.descricaoClinica }}</span>
+          </div>
+        }
+        <mat-divider class="mt-1 mb-1"></mat-divider>
+        <div class="info-item"><span class="label">Veterinário</span><span>{{ solicitacao.vetSolicitante.nome }}</span></div>
+        <div class="info-item">
+          <span class="label">CRMV</span>
+          <span>{{ solicitacao.vetSolicitante.crmvEstado }}-{{ solicitacao.vetSolicitante.crmvNumero }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Laudo -->
+  <mat-card class="secao">
+    <mat-card-header>
+      <mat-card-title>Laudo</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (laudo) {
+        <div class="laudo-emitido">
+          <div class="info-item"><span class="label">Emitido em</span><span>{{ laudo.emitidoEm | date:'dd/MM/yyyy HH:mm' }}</span></div>
+          <div class="info-item"><span class="label">Patologista</span><span>{{ laudo.patologistaNome }}</span></div>
+          <div class="laudo-conteudo">{{ laudo.conteudo }}</div>
+          <button mat-raised-button color="primary" (click)="downloadPdf()" [disabled]="baixandoPdf" class="mt-2">
+            @if (baixandoPdf) { <mat-spinner diameter="18"></mat-spinner> Baixando... }
+            @else { Baixar PDF }
+          </button>
+        </div>
+      } @else if (solicitacao.status === 'EmAnalise' || solicitacao.status === 'AmostraRecebida') {
+        @if (!mostrarFormLaudo) {
+          <button mat-raised-button color="primary" (click)="mostrarFormLaudo = true">
+            <mat-icon>description</mat-icon> Emitir Laudo
+          </button>
+        } @else {
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Conteúdo do Laudo</mat-label>
+            <textarea matInput [formControl]="laudoConteudo" rows="8"
+              placeholder="Redija o laudo do exame..."></textarea>
+          </mat-form-field>
+          <div class="acoes-laudo">
+            <button mat-stroked-button (click)="mostrarFormLaudo = false">Cancelar</button>
+            <button mat-raised-button color="primary" (click)="emitirLaudo()"
+              [disabled]="!laudoConteudo.value || emitindoLaudo">
+              @if (emitindoLaudo) { <mat-spinner diameter="18"></mat-spinner> }
+              @else { Emitir e Concluir }
+            </button>
+          </div>
+        }
+      } @else {
+        <p class="sem-laudo">Laudo disponível após o exame ser concluído.</p>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Histórico -->
+  @if (solicitacao.historico.length > 0) {
+    <mat-card class="secao">
+      <mat-card-header><mat-card-title>Histórico</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @for (h of solicitacao.historico; track h.alteradoEm) {
+          <div class="historico-item">
+            <mat-icon class="hist-icon">swap_horiz</mat-icon>
+            <div>
+              <span class="status-chip {{ h.statusAnterior }}">{{ statusLabel(h.statusAnterior) }}</span>
+              <mat-icon style="vertical-align:middle; font-size:16px">arrow_forward</mat-icon>
+              <span class="status-chip {{ h.statusNovo }}">{{ statusLabel(h.statusNovo) }}</span>
+              <span class="hist-data">{{ h.alteradoEm | date:'dd/MM/yyyy HH:mm' }}</span>
+              @if (h.observacao) { <p class="hist-obs">{{ h.observacao }}</p> }
+            </div>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+}
