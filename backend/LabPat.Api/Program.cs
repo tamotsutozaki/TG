@@ -1,10 +1,12 @@
 using LabPat.Application.Common;
 using LabPat.Application.Features.Auth;
 using LabPat.Application.Features.Insumos;
+using LabPat.Application.Features.Laudos;
 using LabPat.Application.Features.Solicitacoes;
 using LabPat.Application.Features.TiposExame;
 using LabPat.Domain.Interfaces;
 using LabPat.Infrastructure.Data;
+using LabPat.Infrastructure.ExternalServices;
 using LabPat.Infrastructure.Identity;
 using LabPat.Infrastructure.Repositories;
 using LabPat.Infrastructure.Security;
@@ -60,6 +62,7 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITipoExameRepository, TipoExameRepository>();
 builder.Services.AddScoped<IInsumoRepository, InsumoRepository>();
 builder.Services.AddScoped<ISolicitacaoRepository, SolicitacaoRepository>();
+builder.Services.AddScoped<ILaudoRepository, LaudoRepository>();
 builder.Services.AddScoped<IVetSolicitanteRepository, VetSolicitanteRepository>();
 builder.Services.AddScoped<ITutorRepository, TutorRepository>();
 builder.Services.AddScoped<IPacienteRepository, PacienteRepository>();
@@ -71,12 +74,14 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddSingleton<IPdfGenerator, QuestPdfGenerator>();
 
 // Serviços de aplicação
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITipoExameService, TipoExameService>();
 builder.Services.AddScoped<IInsumoService, InsumoService>();
 builder.Services.AddScoped<ISolicitacaoService, SolicitacaoService>();
+builder.Services.AddScoped<ILaudoService, LaudoService>();
 
 var app = builder.Build();
 

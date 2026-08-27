@@ -11,7 +11,6 @@ public class SolicitacaoService(
     ITutorRepository tutorRepository,
     IPacienteRepository pacienteRepository,
     ITipoExameRepository tipoExameRepository,
-    IInsumoRepository insumoRepository,
     ICurrentUser currentUser,
     IUnitOfWork unitOfWork) : ISolicitacaoService
 {
@@ -75,10 +74,7 @@ public class SolicitacaoService(
         solicitacao.Historico.Add(historico);
 
         if (input.NovoStatus == StatusSolicitacao.Concluido)
-        {
             solicitacao.DataConclusao = DateTime.UtcNow;
-            await DescontarEstoqueAsync(solicitacao.TipoExameId);
-        }
 
         solicitacaoRepository.Update(solicitacao);
         await unitOfWork.CommitAsync();
@@ -168,21 +164,6 @@ public class SolicitacaoService(
         while (await solicitacaoRepository.CodigoPublicoExisteAsync(codigo));
 
         return codigo;
-    }
-
-    private async Task DescontarEstoqueAsync(int tipoExameId)
-    {
-        var tipo = await tipoExameRepository.GetByIdComDetalhesAsync(tipoExameId);
-        if (tipo is null) return;
-
-        foreach (var ei in tipo.ExameInsumos)
-        {
-            var insumo = await insumoRepository.GetByIdAsync(ei.InsumoId);
-            if (insumo is null) continue;
-
-            insumo.QuantidadeAtual = Math.Max(0, insumo.QuantidadeAtual - ei.QuantidadeConsumida);
-            insumoRepository.Update(insumo);
-        }
     }
 
     private static SolicitacaoDto ToDto(Solicitacao s) =>

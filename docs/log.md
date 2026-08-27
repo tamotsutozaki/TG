@@ -311,4 +311,35 @@ Os endpoints do módulo de solicitações são:
 
 ---
 
+## 12. Módulo de Laudos e Geração de PDF
+
+O módulo de laudos cobre a etapa final do ciclo de vida de uma solicitação: a emissão do documento de diagnóstico pelo patologista e sua disponibilização para download em formato PDF. A emissão do laudo marca a conclusão do exame e dispara automaticamente o desconto de estoque dos insumos consumidos.
+
+### 12.1 Decisão de Arquitetura: Desconto de Estoque
+
+Durante a implementação deste módulo, identificou-se que o desconto de estoque pertence semanticamente à emissão do laudo — o estoque é consumido quando o exame é de fato realizado e documentado — e não à simples atualização de status. Portanto, o desconto de estoque foi movido do `SolicitacaoService` para o `LaudoService`, tornando a emissão do laudo a única operação que efetivamente desconta o estoque. A atualização manual de status via `SolicitacaoService.UpdateStatusAsync` permanece disponível para correções e movimentações intermediárias, sem efeito sobre o estoque.
+
+### 12.2 Geração de PDF com QuestPDF
+
+Para a geração dos laudos em formato PDF, foi adotada a biblioteca **QuestPDF**, de licença MIT, que oferece uma API fluente e fortemente tipada para composição de documentos em .NET. A biblioteca elimina a necessidade de templates HTML ou conversões intermediárias, permitindo definir o layout do documento diretamente em código C#.
+
+A implementação seguiu o padrão Clean Architecture: a interface `IPdfGenerator` foi definida na camada Application (em `Application/Common/`) e a implementação concreta `QuestPdfGenerator` foi criada na camada Infrastructure (em `Infrastructure/ExternalServices/`). A interface recebe um objeto `LaudoPdfData` com todos os dados necessários para compor o documento, sem expor nenhum detalhe de implementação às camadas superiores.
+
+O PDF gerado possui a seguinte estrutura: cabeçalho com título e identificação do laboratório; seção de identificação contendo o código público, tipo de exame e datas; tabela com dados do paciente (nome, espécie, raça, sexo, idade, peso e tutor); dados do médico veterinário solicitante com o número do CRMV; caixa de conteúdo do laudo com o texto redigido pelo patologista; e rodapé com a identificação e assinatura do patologista responsável. O PDF é gerado sob demanda a cada requisição, sem armazenamento em disco ou banco de dados, o que simplifica a infraestrutura e elimina a necessidade de um serviço de armazenamento de arquivos durante o desenvolvimento.
+
+### 12.3 Fluxo de Emissão do Laudo
+
+Ao criar um laudo via `POST /api/laudos`, o `LaudoService` executa as seguintes operações em uma única transação: verificação de que a solicitação existe e ainda não possui laudo; criação da entidade Laudo com o conteúdo fornecido pelo patologista, o id do patologista autenticado e o instante de emissão; atualização do status da solicitação para `Concluido` com registro automático de `HistoricoStatus`; e desconto dos insumos configurados para o tipo de exame a partir do estoque atual.
+
+### 12.4 Endpoints
+
+- `POST /api/laudos` — cria o laudo, conclui a solicitação e desconta estoque (autenticado)
+- `GET /api/laudos/{id}` — retorna os dados do laudo (autenticado)
+- `GET /api/laudos/solicitacao/{solicitacaoId}` — retorna o laudo de uma solicitação específica (autenticado)
+- `GET /api/laudos/{id}/pdf` — gera e retorna o laudo em PDF para download (autenticado)
+
+O endpoint de download retorna o arquivo diretamente no corpo da resposta com o tipo MIME `application/pdf` e nome de arquivo padronizado `laudo-{id}.pdf`, permitindo que o navegador ou o frontend inicie o download diretamente.
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
