@@ -263,4 +263,52 @@ O método de busca por id do `TipoExameRepository` foi atualizado para `GetByIdC
 
 ---
 
+## 11. Módulo de Solicitações
+
+O módulo de solicitações constitui o núcleo do sistema, pois representa o fluxo central de trabalho do laboratório: o recebimento de uma requisição de exame, seu acompanhamento até a conclusão e a disponibilização do laudo. Por envolver múltiplas entidades relacionadas, é o módulo mais complexo do backend.
+
+### 11.1 Padrão Busca ou Cria
+
+Ao criar uma solicitação, o sistema precisa identificar o médico veterinário solicitante, o tutor do animal e o paciente. Para evitar que o usuário precise navegar por telas de cadastro separadas antes de abrir uma solicitação, foi adotado o padrão "busca ou cria" para as três entidades:
+
+- O **VetSolicitante** é identificado pelo número e estado do CRMV. Se já existir um registro com esse CRMV no banco, ele é reutilizado; caso contrário, é criado no ato da solicitação.
+- O **Tutor** é identificado pelo telefone. Se já houver um tutor com esse número cadastrado, ele é reutilizado; caso contrário, é criado.
+- O **Paciente** é identificado pelo nome combinado com o id do tutor. Se o tutor já possuir um animal com aquele nome, o registro existente é reutilizado; caso contrário, um novo paciente é criado.
+
+Esse fluxo permite que o médico veterinário submeta uma solicitação completa em uma única operação, sem cadastros prévios obrigatórios.
+
+### 11.2 Geração do Código Público
+
+No momento da criação da solicitação, o sistema gera automaticamente um código público alfanumérico de oito caracteres, utilizando um conjunto de caracteres sem ambiguidade visual (sem a letra O, sem o número 0, sem a letra I, etc.). O código é verificado contra o banco de dados antes de ser atribuído, garantindo unicidade. Esse código é o único dado necessário para que o tutor consulte o status do exame na página pública.
+
+### 11.3 Cálculo da Data Estimada de Conclusão
+
+A data estimada de conclusão é calculada automaticamente no momento da criação da solicitação, somando ao instante atual o prazo estimado em dias configurado no tipo de exame correspondente. Esse valor é exibido na página pública de consulta e pode ser atualizado pelo patologista se necessário.
+
+### 11.4 Atualização de Status e Histórico
+
+A atualização de status de uma solicitação é realizada por meio do endpoint `PUT /api/solicitacoes/{id}/status`. A cada mudança, um registro de `HistoricoStatus` é criado automaticamente, armazenando o status anterior, o status novo, o momento da alteração, o id do patologista responsável e uma observação opcional. Isso garante rastreabilidade completa do ciclo de vida de cada exame.
+
+O patologista autenticado é identificado por meio da interface `ICurrentUser`, implementada pela classe `CurrentUser` na camada de Infrastructure. Essa classe lê o claim de identificador do usuário presente no token JWT da requisição atual, por meio do `IHttpContextAccessor` do ASP.NET Core.
+
+### 11.5 Desconto Automático de Estoque
+
+Quando o status de uma solicitação é atualizado para `Concluido`, o `SolicitacaoService` aciona automaticamente a lógica de desconto de estoque. O serviço carrega os insumos configurados para o tipo de exame da solicitação e deduz as quantidades correspondentes do estoque atual de cada insumo. Caso a quantidade atual de um insumo seja insuficiente, o valor é reduzido até zero sem gerar erro — a gestão de reposição é responsabilidade do patologista, que é alertado pelo campo `EmEstoqueBaixo` na listagem de insumos.
+
+### 11.6 Consulta Pública por Código
+
+O endpoint `GET /api/solicitacoes/consulta/{codigo}` é o único endpoint não autenticado do sistema (decorado com `[AllowAnonymous]`). Ele aceita o código público gerado na criação da solicitação e retorna um `ConsultaPublicaDto` com informações mínimas: código, status atual, tipo de exame, nome do paciente, data de criação e data estimada de conclusão. Nenhum dado sensível do tutor, do médico veterinário ou da descrição clínica é exposto nesse endpoint.
+
+### 11.7 Endpoints
+
+Os endpoints do módulo de solicitações são:
+
+- `GET /api/solicitacoes` — lista todas as solicitações com dados resumidos (autenticado)
+- `GET /api/solicitacoes/{id}` — retorna os detalhes completos de uma solicitação, incluindo histórico de status (autenticado)
+- `POST /api/solicitacoes` — cria uma nova solicitação com busca ou criação automática de vet, tutor e paciente (autenticado)
+- `PUT /api/solicitacoes/{id}/status` — atualiza o status da solicitação e registra no histórico (autenticado)
+- `GET /api/solicitacoes/consulta/{codigo}` — consulta pública por código único (sem autenticação)
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
