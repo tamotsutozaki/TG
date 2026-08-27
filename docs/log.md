@@ -378,4 +378,38 @@ A integração segue o padrão Clean Architecture: a interface `IGeminiService` 
 
 ---
 
+## 14. Configuração do Frontend Angular
+
+### 14.1 Instalação do Angular Material
+
+A biblioteca Angular Material foi adicionada ao projeto por meio do comando `ng add @angular/material`, que realizou automaticamente a configuração do tema visual, a importação das animações assíncronas e a atualização dos arquivos `angular.json`, `index.html` e `styles.scss`. O tema escolhido foi o `indigo-pink`, paleta padrão do Material Design com azul índigo como cor primária, adequada ao contexto de sistema de informação profissional.
+
+### 14.2 Estrutura de Pastas
+
+O projeto Angular foi organizado em três grandes grupos: `core/` com os elementos transversais da aplicação (serviços, guards, interceptors e modelos de dados), `features/` com os componentes de cada funcionalidade em subpastas, e `layout/` com o shell da aplicação autenticada. Todos os componentes foram criados como standalone components, padrão do Angular 17+ que elimina a necessidade de NgModules.
+
+### 14.3 Autenticação no Frontend
+
+O `AuthService` gerencia o estado de autenticação utilizando Signals do Angular. O token JWT recebido após o login é armazenado no `localStorage` e os dados do usuário são mantidos em memória via signal. O serviço expõe os signals `isLoggedIn` e `currentUser`, consumidos pelo layout e pelo guard.
+
+O `authInterceptor` é uma função interceptora funcional que adiciona automaticamente o cabeçalho `Authorization: Bearer {token}` a todas as requisições HTTP. O `authGuard` protege todas as rotas internas, redirecionando para `/login` quando não há token válido.
+
+### 14.4 Roteamento com Lazy Loading
+
+Todos os componentes são carregados sob demanda (lazy loading), reduzindo o bundle inicial. As rotas públicas (`/login` e `/consulta/:codigo`) são acessíveis sem autenticação. Todas as rotas internas são filhas do `MainLayoutComponent` e protegidas pelo `authGuard`.
+
+### 14.5 Layout Principal
+
+O layout autenticado utiliza o `MatSidenav` para compor uma barra lateral fixa com os links de navegação (Solicitações, Tipos de Exame, Estoque) e um rodapé com o nome do patologista e botão de logout. A área de conteúdo renderiza o componente da rota ativa via `<router-outlet>`.
+
+### 14.6 Página de Login
+
+Tela pública com formulário reativo centralizado sobre fundo gradiente índigo. Inclui campos de e-mail e senha com validação, alternância de visibilidade da senha, feedback de erro e spinner de carregamento durante o processo de autenticação.
+
+### 14.7 Página de Consulta Pública
+
+A página `/consulta/:codigo` exibe informações mínimas de uma solicitação (status, tipo de exame, nome do paciente, datas) sem expor dados sensíveis, em conformidade com a LGPD.
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
