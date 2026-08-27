@@ -342,4 +342,40 @@ O endpoint de download retorna o arquivo diretamente no corpo da resposta com o 
 
 ---
 
+## 13. Integração com a API Google Gemini
+
+A integração com o Google Gemini representa o diferencial tecnológico central deste trabalho: a capacidade de criar solicitações de exame a partir de documentos enviados como imagem, PDF ou áudio, sem necessidade de digitação manual por parte do médico veterinário solicitante.
+
+### 13.1 Funcionamento Geral
+
+O fluxo de uso da funcionalidade é o seguinte: o médico veterinário acessa o formulário de nova solicitação e, em vez de preencher os campos manualmente, faz o upload de uma guia de solicitação (foto, PDF ou gravação de voz). O frontend envia esse arquivo ao endpoint `POST /api/gemini/extrair`. O backend recebe o arquivo, converte-o para base64, monta a requisição para a API do Gemini e retorna ao frontend os dados extraídos em formato estruturado. O frontend então preenche automaticamente os campos do formulário com esses dados, permitindo que o usuário revise e confirme antes de submeter a solicitação.
+
+### 13.2 Comunicação com a API do Gemini
+
+A comunicação com a API do Gemini é feita via HTTP diretamente, por meio do `IHttpClientFactory` do ASP.NET Core, sem dependência de SDK de terceiros. A requisição utiliza o endpoint de geração de conteúdo da API REST do Gemini (`v1beta/models/gemini-1.5-flash:generateContent`), enviando o arquivo como dado inline codificado em base64 junto ao prompt de instrução.
+
+O parâmetro `responseMimeType = "application/json"` é passado na configuração de geração, instruindo o modelo a retornar diretamente um objeto JSON válido, sem texto adicional nem formatação Markdown, o que elimina a necessidade de pós-processamento da resposta.
+
+O modelo utilizado por padrão é o **Gemini 1.5 Flash**, otimizado para tarefas de extração de dados — rápido, econômico e com excelente desempenho em documentos de layout variável. O modelo pode ser alterado via configuração sem mudança de código.
+
+### 13.3 Prompt de Extração
+
+O prompt enviado ao Gemini instrui o modelo a comportar-se como assistente de laboratório veterinário e a extrair dezesseis campos estruturados da guia de solicitação: dados do médico veterinário (nome, CRMV, e-mail, telefone), dados do tutor (nome, telefone, e-mail), dados do paciente (nome, espécie, raça, sexo, idade, peso), tipo de exame e descrição clínica. Campos não identificados no documento são retornados como `null`.
+
+A temperatura de geração foi configurada em `0.1`, valor próximo de zero que torna o modelo mais determinístico e literal, adequado para tarefas de extração de informações onde criatividade é indesejada.
+
+### 13.4 Tipos de Arquivo Suportados
+
+O endpoint aceita os seguintes tipos MIME: imagens nos formatos JPEG, PNG, WebP e HEIC; documentos PDF; e arquivos de áudio nos formatos MP3, MPEG, WAV, OGG e WebM. O tamanho máximo de arquivo aceito é de 10 MB, limite compatível com o tier gratuito da API do Gemini e suficiente para guias de solicitação veterinária em todos os formatos suportados.
+
+### 13.5 Segurança da Chave de API
+
+A chave da API do Gemini é armazenada exclusivamente em variável de ambiente ou no arquivo `appsettings.Development.json` (ignorado pelo controle de versão). O arquivo `appsettings.json` presente no repositório contém apenas a estrutura de configuração com a chave em branco. Em produção no Azure App Service, a chave será fornecida via variável de ambiente configurada no painel do serviço.
+
+### 13.6 Arquitetura da Integração
+
+A integração segue o padrão Clean Architecture: a interface `IGeminiService` foi definida em `Application/Common/`, abstraindo o contrato de extração. A implementação concreta `GeminiService` reside em `Infrastructure/ExternalServices/`, contendo toda a lógica de comunicação HTTP, construção da requisição e deserialização da resposta. A classe `DadosExtraidos` é uma classe interna ao `GeminiService`, utilizada apenas para mapear o JSON com chaves em snake_case retornado pelo modelo para o DTO público `ExtrairSolicitacaoDto`, que é retornado ao frontend com as chaves em camelCase.
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
