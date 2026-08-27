@@ -186,4 +186,45 @@ A chave secreta do JWT, essencial para a integridade dos tokens, é armazenada e
 
 ---
 
+## 9. Módulo de Tipos de Exame e Templates de Laudo
+
+O módulo de tipos de exame representa o primeiro cadastro configurável do sistema e constitui um pré-requisito para a criação de solicitações, uma vez que toda solicitação deve estar vinculada a um tipo de exame previamente cadastrado pelo patologista. Tipos de exame típicos incluem citologia, histopatologia, hemograma, análises bioquímicas, urinálise e parasitologia, entre outros conforme a oferta do laboratório.
+
+### 9.1 Repositório Base Genérico
+
+Antes de implementar o repositório específico de tipos de exame, foi criada a classe abstrata `RepositoryBase<T>`, localizada em `Infrastructure/Repositories/`. Essa classe implementa a interface genérica `IRepository<T>` e centraliza as operações CRUD comuns a todos os repositórios: busca por id, listagem completa, adição, atualização e remoção. Todos os repositórios específicos do sistema herdam de `RepositoryBase<T>` e adicionam apenas os métodos que são particulares a cada entidade, eliminando a duplicação de código. O `UsuarioRepository` foi refatorado para utilizar essa classe base na mesma oportunidade.
+
+### 9.2 Organização da Feature
+
+A feature de tipos de exame foi implementada na pasta `Application/Features/TiposExame/`, seguindo o mesmo padrão de organização por funcionalidade adotado no módulo de autenticação. Os arquivos criados foram:
+
+- `TipoExameDto` e `TipoExameDetalhadoDto`: records que representam as respostas da API. O DTO simples retorna os campos básicos do tipo de exame; o DTO detalhado inclui também a lista de templates de laudo associados.
+- `TemplateLaudoDto`: record de resposta para templates individuais, contendo id, conteúdo, versão e data de criação.
+- `CreateTipoExameInput` e `UpdateTipoExameInput`: records que representam os dados de entrada para criação e atualização, respectivamente.
+- `CreateTemplateLaudoInput`: record de entrada para adição de um novo template a um tipo de exame existente.
+- `ITipoExameService` e `TipoExameService`: interface e implementação do serviço.
+
+### 9.3 Lógica de Negócio
+
+O `TipoExameService` implementa as operações de listagem, busca por id, criação, atualização e exclusão lógica de tipos de exame, além da adição de templates de laudo. A exclusão é implementada como soft delete: o campo `Ativo` é alterado para `false`, preservando o histórico de solicitações já vinculadas ao tipo de exame sem remover o registro do banco.
+
+A adição de templates implementa versionamento automático: ao adicionar um novo template a um tipo de exame, o serviço identifica a versão mais alta entre os templates já existentes e atribui ao novo template o número subsequente. Isso garante que a evolução dos templates seja rastreável e que laudos já emitidos não sejam afetados por alterações futuras no conteúdo padrão.
+
+### 9.4 Repositório e Endpoints
+
+O `ITipoExameRepository` define, além dos métodos herdados do repositório genérico, dois métodos específicos: `GetAllAtivosAsync`, que retorna apenas tipos de exame com `Ativo = true` ordenados por nome; e `GetByIdComTemplatesAsync`, que utiliza o método `Include` do Entity Framework Core para carregar a lista de templates junto ao tipo de exame em uma única consulta ao banco, evitando o problema de N+1 queries.
+
+Os endpoints REST expostos pelo `TiposExameController` são:
+
+- `GET /api/tipos-exame` — lista todos os tipos de exame ativos
+- `GET /api/tipos-exame/{id}` — retorna um tipo de exame com seus templates
+- `POST /api/tipos-exame` — cria um novo tipo de exame
+- `PUT /api/tipos-exame/{id}` — atualiza um tipo de exame existente
+- `DELETE /api/tipos-exame/{id}` — realiza soft delete do tipo de exame
+- `POST /api/tipos-exame/{id}/templates` — adiciona um novo template de laudo ao tipo de exame
+
+Todos os endpoints exigem autenticação JWT, declarada pelo atributo `[Authorize]` no nível do controller, garantindo que apenas o patologista autenticado possa realizar operações de cadastro.
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->
