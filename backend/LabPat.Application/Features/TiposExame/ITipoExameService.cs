@@ -8,4 +8,6 @@ public interface ITipoExameService
     Task<TipoExameDto?> UpdateAsync(int id, UpdateTipoExameInput input);
     Task<bool> DeleteAsync(int id);
     Task<TemplateLaudoDto?> AddTemplateAsync(int tipoExameId, CreateTemplateLaudoInput input);
+    Task<ExameInsumoDto?> VincularInsumoAsync(int tipoExameId, VincularInsumoInput input);
+    Task<bool> DesvincularInsumoAsync(int tipoExameId, int insumoId);
 }

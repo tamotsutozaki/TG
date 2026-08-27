@@ -227,4 +227,40 @@ Todos os endpoints exigem autenticação JWT, declarada pelo atributo `[Authoriz
 
 ---
 
+## 10. Módulo de Insumos e Controle de Estoque
+
+O módulo de insumos gerencia o estoque de materiais consumíveis do laboratório, como reagentes, lâminas, frascos e demais itens utilizados na execução dos exames. Sua implementação estabelece tanto o cadastro individual dos insumos quanto o vínculo entre insumos e tipos de exame, base para o desconto automático de estoque ao concluir uma solicitação.
+
+### 10.1 Feature de Insumos
+
+A feature foi implementada na pasta `Application/Features/Insumos/`, seguindo o padrão estabelecido nos módulos anteriores. O `InsumoDto` inclui, além dos campos cadastrais, o campo calculado `EmEstoqueBaixo`, que retorna verdadeiro quando a quantidade atual é inferior à quantidade mínima configurada. Esse campo permite que a interface exiba alertas visuais ao patologista sem necessidade de lógica adicional no frontend.
+
+O serviço `InsumoService` implementa as operações de listagem, busca, criação, atualização e exclusão lógica (soft delete via campo `Ativo`). Inclui também a operação `AjustarQuantidadeAsync`, que permite ao patologista registrar manualmente a quantidade atual de um insumo — útil para entrada de novos itens no estoque ou correção de divergências após inventário. O desconto automático ao concluir exames, por sua vez, é responsabilidade do módulo de laudos e ocorre sem intervenção manual.
+
+Os endpoints expostos pelo `InsumosController` são:
+
+- `GET /api/insumos` — lista todos os insumos ativos
+- `GET /api/insumos/{id}` — retorna um insumo específico
+- `POST /api/insumos` — cadastra um novo insumo (quantidade inicial zero)
+- `PUT /api/insumos/{id}` — atualiza nome, unidade de medida, quantidade mínima e status
+- `DELETE /api/insumos/{id}` — soft delete do insumo
+- `PATCH /api/insumos/{id}/quantidade` — ajuste manual da quantidade atual
+
+### 10.2 Vínculo entre Insumos e Tipos de Exame
+
+A configuração de quais insumos são consumidos por cada tipo de exame é gerenciada por meio de dois endpoints adicionados ao `TiposExameController`:
+
+- `POST /api/tipos-exame/{id}/insumos` — vincula um insumo a um tipo de exame com a quantidade consumida por execução; se o vínculo já existir, atualiza a quantidade (operação de upsert)
+- `DELETE /api/tipos-exame/{id}/insumos/{insumoId}` — remove o vínculo entre insumo e tipo de exame
+
+Essa operação de upsert simplifica a experiência do patologista ao configurar insumos: ele não precisa verificar se um vínculo já existe antes de salvar — o sistema trata automaticamente os dois casos.
+
+O `TipoExameDetalhadoDto` foi atualizado para incluir a lista de insumos vinculados ao tipo de exame, de modo que ao consultar um tipo de exame pelo id, o patologista visualiza em uma única resposta os templates de laudo e os insumos configurados.
+
+### 10.3 Atualização do Repositório de Tipos de Exame
+
+O método de busca por id do `TipoExameRepository` foi atualizado para `GetByIdComDetalhesAsync`, carregando em uma única consulta os templates de laudo e os vínculos com insumos, incluindo os dados completos de cada insumo por meio do método `ThenInclude` do Entity Framework Core. Isso garante que todas as informações necessárias para exibir ou manipular um tipo de exame estejam disponíveis sem consultas adicionais ao banco.
+
+---
+
 <!-- Novas seções serão adicionadas aqui conforme o desenvolvimento avança -->

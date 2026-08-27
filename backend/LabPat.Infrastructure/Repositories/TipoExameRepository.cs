@@ -14,8 +14,10 @@ public class TipoExameRepository(AppDbContext context)
             .OrderBy(t => t.Nome)
             .ToListAsync();
 
-    public async Task<TipoExame?> GetByIdComTemplatesAsync(int id) =>
+    public async Task<TipoExame?> GetByIdComDetalhesAsync(int id) =>
         await Context.TiposExame
-            .Include(t => t.Templates.OrderByDescending(tl => tl.Versao))
+            .Include(t => t.Templates)
+            .Include(t => t.ExameInsumos)
+                .ThenInclude(ei => ei.Insumo)
             .FirstOrDefaultAsync(t => t.Id == id);
 }

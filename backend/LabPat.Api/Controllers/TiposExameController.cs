@@ -47,4 +47,18 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
         var template = await tipoExameService.AddTemplateAsync(id, input);
         return template is null ? NotFound() : Ok(template);
     }
+
+    [HttpPost("{id:int}/insumos")]
+    public async Task<IActionResult> VincularInsumo(int id, [FromBody] VincularInsumoInput input)
+    {
+        var result = await tipoExameService.VincularInsumoAsync(id, input);
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    [HttpDelete("{id:int}/insumos/{insumoId:int}")]
+    public async Task<IActionResult> DesvincularInsumo(int id, int insumoId)
+    {
+        var deleted = await tipoExameService.DesvincularInsumoAsync(id, insumoId);
+        return deleted ? NoContent() : NotFound();
+    }
 }

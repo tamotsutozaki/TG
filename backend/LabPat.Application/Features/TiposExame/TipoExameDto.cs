@@ -8,4 +8,5 @@ public record TipoExameDetalhadoDto(
     string? Descricao,
     int PrazoEstimadoDias,
     bool Ativo,
-    IEnumerable<TemplateLaudoDto> Templates);
+    IEnumerable<TemplateLaudoDto> Templates,
+    IEnumerable<ExameInsumoDto> Insumos);

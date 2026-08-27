@@ -1,5 +1,6 @@
 using LabPat.Application.Common;
 using LabPat.Application.Features.Auth;
+using LabPat.Application.Features.Insumos;
 using LabPat.Application.Features.TiposExame;
 using LabPat.Domain.Interfaces;
 using LabPat.Infrastructure.Data;
@@ -53,6 +54,7 @@ builder.Services.AddAuthorization();
 // Repositórios
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITipoExameRepository, TipoExameRepository>();
+builder.Services.AddScoped<IInsumoRepository, InsumoRepository>();
 
 // Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -64,6 +66,7 @@ builder.Services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
 // Serviços de aplicação
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITipoExameService, TipoExameService>();
+builder.Services.AddScoped<IInsumoService, InsumoService>();
 
 var app = builder.Build();
 
