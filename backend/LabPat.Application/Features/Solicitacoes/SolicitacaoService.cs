@@ -30,7 +30,7 @@ public class SolicitacaoService(
     {
         var vet = await BuscarOuCriarVetAsync(input.VetSolicitante);
         var tutor = await BuscarOuCriarTutorAsync(input.Tutor);
-        var paciente = await BuscarOuCriarPacienteAsync(input.Paciente, tutor.Id);
+        var paciente = await BuscarOuCriarPacienteAsync(input.Paciente, tutor);
 
         var codigo = await GerarCodigoUnicoAsync();
         var tipoExame = await tipoExameRepository.GetByIdAsync(input.TipoExameId);
@@ -38,8 +38,8 @@ public class SolicitacaoService(
         var solicitacao = new Solicitacao
         {
             CodigoPublico = codigo,
-            PacienteId = paciente.Id,
-            VetSolicitanteId = vet.Id,
+            Paciente = paciente,
+            VetSolicitante = vet,
             TipoExameId = input.TipoExameId,
             Status = StatusSolicitacao.Solicitado,
             DescricaoClinica = input.DescricaoClinica,
@@ -130,9 +130,9 @@ public class SolicitacaoService(
         return tutor;
     }
 
-    private async Task<Paciente> BuscarOuCriarPacienteAsync(PacienteInput input, int tutorId)
+    private async Task<Paciente> BuscarOuCriarPacienteAsync(PacienteInput input, Tutor tutor)
     {
-        var paciente = await pacienteRepository.GetByNomeETutorAsync(input.Nome, tutorId);
+        var paciente = await pacienteRepository.GetByNomeETutorAsync(input.Nome, tutor.Id);
         if (paciente is not null) return paciente;
 
         paciente = new Paciente
@@ -144,7 +144,7 @@ public class SolicitacaoService(
             IdadeAnos = input.IdadeAnos,
             IdadeMeses = input.IdadeMeses,
             PesoKg = input.PesoKg,
-            TutorId = tutorId
+            Tutor = tutor
         };
         await pacienteRepository.AddAsync(paciente);
         return paciente;
