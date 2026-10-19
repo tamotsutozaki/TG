@@ -15,6 +15,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { SolicitacaoService } from '../../../core/services/solicitacao.service';
 import { LaudoService, LaudoDto } from '../../../core/services/laudo.service';
 import { TipoExameService } from '../../../core/services/tipo-exame.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { TemplateLaudoDto } from '../../../core/models/tipo-exame.model';
 import { SolicitacaoDetalhadaDto, StatusSolicitacao } from '../../../core/models/solicitacao.model';
 
@@ -66,8 +67,13 @@ export class SolicitacaoDetalheComponent implements OnInit {
     private solicitacaoService: SolicitacaoService,
     private laudoService: LaudoService,
     private tipoExameService: TipoExameService,
+    private auth: AuthService,
     private snack: MatSnackBar
   ) {}
+
+  get isPatologista() {
+    return this.auth.isPatologista();
+  }
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));

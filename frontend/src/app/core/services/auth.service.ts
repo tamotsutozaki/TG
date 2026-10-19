@@ -1,9 +1,15 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginInput } from '../models/auth.model';
+import { AuthResponse, LoginInput, PapelUsuario, RegistrarVetInput } from '../models/auth.model';
+
+interface UsuarioLogado {
+  nome: string;
+  email: string;
+  papel: PapelUsuario;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -11,7 +17,10 @@ export class AuthService {
   private readonly USER_KEY = 'labpat_user';
 
   isLoggedIn = signal(this.hasToken());
-  currentUser = signal<{ nome: string; email: string } | null>(this.loadUser());
+  currentUser = signal<UsuarioLogado | null>(this.loadUser());
+
+  isPatologista = computed(() => this.currentUser()?.papel === 'Patologista');
+  isVeterinario = computed(() => this.currentUser()?.papel === 'Veterinario');
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -19,11 +28,16 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, input).pipe(
       tap(res => {
         localStorage.setItem(this.TOKEN_KEY, res.token);
-        localStorage.setItem(this.USER_KEY, JSON.stringify({ nome: res.nome, email: res.email }));
+        const user: UsuarioLogado = { nome: res.nome, email: res.email, papel: res.papel };
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
         this.isLoggedIn.set(true);
-        this.currentUser.set({ nome: res.nome, email: res.email });
+        this.currentUser.set(user);
       })
     );
+  }
+
+  registrar(input: RegistrarVetInput) {
+    return this.http.post<{ message: string }>(`${environment.apiUrl}/auth/registrar`, input);
   }
 
   logout() {
@@ -42,7 +56,7 @@ export class AuthService {
     return !!localStorage.getItem(this.TOKEN_KEY);
   }
 
-  private loadUser() {
+  private loadUser(): UsuarioLogado | null {
     const raw = localStorage.getItem(this.USER_KEY);
     return raw ? JSON.parse(raw) : null;
   }

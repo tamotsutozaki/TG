@@ -29,7 +29,7 @@
         }
       </div>
 
-      @if (proximos.length > 0 && solicitacao.status !== 'Concluido') {
+      @if (isPatologista && proximos.length > 0 && solicitacao.status !== 'Concluido') {
         <mat-divider class="mt-2 mb-2"></mat-divider>
         <div class="status-update-form">
           <mat-form-field appearance="outline">
@@ -117,7 +117,7 @@
             @else { Baixar PDF }
           </button>
         </div>
-      } @else if (solicitacao.status === 'EmAnalise' || solicitacao.status === 'AmostraRecebida') {
+      } @else if (isPatologista && (solicitacao.status === 'EmAnalise' || solicitacao.status === 'AmostraRecebida')) {
         @if (!mostrarFormLaudo) {
           <button mat-raised-button color="primary" (click)="abrirFormLaudo()">
             <mat-icon>description</mat-icon> Emitir Laudo

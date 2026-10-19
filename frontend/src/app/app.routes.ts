@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { patologistaGuard } from './core/guards/patologista.guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,11 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
+    path: 'registro',
+    loadComponent: () =>
+      import('./features/auth/registro/registro.component').then(m => m.RegistroComponent)
+  },
+  {
     path: 'consulta/:codigo',
     loadComponent: () =>
       import('./features/consulta-publica/consulta-publica.component').then(m => m.ConsultaPublicaComponent)
@@ -24,6 +30,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layout/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     children: [
+      {
+        path: 'dashboard',
+        canActivate: [patologistaGuard],
+        loadComponent: () =>
+          import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
       {
         path: 'solicitacoes',
         loadComponent: () =>
@@ -41,13 +53,21 @@ export const routes: Routes = [
       },
       {
         path: 'tipos-exame',
+        canActivate: [patologistaGuard],
         loadComponent: () =>
           import('./features/tipos-exame/tipos-exame.component').then(m => m.TiposExameComponent)
       },
       {
         path: 'insumos',
+        canActivate: [patologistaGuard],
         loadComponent: () =>
           import('./features/insumos/insumos.component').then(m => m.InsumosComponent)
+      },
+      {
+        path: 'veterinarios',
+        canActivate: [patologistaGuard],
+        loadComponent: () =>
+          import('./features/veterinarios/veterinarios.component').then(m => m.VeterinariosComponent)
       }
     ]
   },

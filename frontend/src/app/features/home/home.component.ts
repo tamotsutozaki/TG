@@ -52,16 +52,21 @@ import { AuthService } from '../../core/services/auth.service';
           </mat-card-content>
         </mat-card>
 
+        <div class="acesso-vet">
+          <mat-icon>pets</mat-icon>
+          <div class="acesso-vet-texto">
+            <span class="acesso-vet-titulo">É veterinário?</span>
+            <span class="acesso-vet-sub">Envie solicitações de exame pela plataforma</span>
+          </div>
+          <button mat-stroked-button color="primary" (click)="irParaLogin()">Entrar</button>
+          <button mat-flat-button color="primary" (click)="irParaRegistro()">Criar conta</button>
+        </div>
+
         <footer class="acesso-interno">
           @if (auth.isLoggedIn()) {
-            <button mat-stroked-button (click)="irParaPainel()">
+            <button mat-button (click)="irParaPainel()">
               <mat-icon>dashboard</mat-icon>
               Ir para o painel
-            </button>
-          } @else {
-            <button mat-button (click)="irParaLogin()">
-              <mat-icon>lock</mat-icon>
-              Acesso do patologista
             </button>
           }
         </footer>
@@ -81,7 +86,16 @@ import { AuthService } from '../../core/services/auth.service';
     .consulta-card { padding: 8px; }
     .consulta-form { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
     .codigo-field { width: 100%; }
-    .acesso-interno { text-align: center; margin-top: 24px; }
+    .acesso-vet {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-top: 16px; padding: 16px; background: #fff; border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .acesso-vet > mat-icon { color: #3f51b5; }
+    .acesso-vet-texto { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+    .acesso-vet-titulo { font-weight: 600; font-size: 14px; }
+    .acesso-vet-sub { font-size: 12px; color: #666; }
+    .acesso-interno { text-align: center; margin-top: 16px; }
   `]
 })
 export class HomeComponent {
@@ -99,7 +113,11 @@ export class HomeComponent {
     this.router.navigate(['/login']);
   }
 
+  irParaRegistro() {
+    this.router.navigate(['/registro']);
+  }
+
   irParaPainel() {
-    this.router.navigate(['/solicitacoes']);
+    this.router.navigate(['/dashboard']);
   }
 }

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -16,6 +16,7 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -50,9 +51,12 @@ export class LoginComponent {
     this.erro = '';
 
     this.auth.login(this.form.value).subscribe({
-      next: () => this.router.navigate(['/solicitacoes']),
-      error: () => {
-        this.erro = 'E-mail ou senha inválidos.';
+      next: () => {
+        const destino = this.auth.isVeterinario() ? '/solicitacoes' : '/dashboard';
+        this.router.navigate([destino]);
+      },
+      error: err => {
+        this.erro = err?.error?.message ?? 'E-mail ou senha inválidos.';
         this.loading = false;
       }
     });

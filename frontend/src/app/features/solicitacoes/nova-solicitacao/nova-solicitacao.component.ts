@@ -15,6 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SolicitacaoService } from '../../../core/services/solicitacao.service';
 import { TipoExameService } from '../../../core/services/tipo-exame.service';
 import { GeminiService } from '../../../core/services/gemini.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { TipoExameDto } from '../../../core/models/tipo-exame.model';
 
 @Component({
@@ -43,6 +44,7 @@ export class NovaSolicitacaoComponent implements OnInit {
     private solicitacaoService: SolicitacaoService,
     private tipoExameService: TipoExameService,
     private geminiService: GeminiService,
+    private auth: AuthService,
     private snack: MatSnackBar
   ) {
     this.form = this.fb.group({
@@ -72,8 +74,18 @@ export class NovaSolicitacaoComponent implements OnInit {
     });
   }
 
+  get isVet() {
+    return this.auth.isVeterinario();
+  }
+
   ngOnInit() {
     this.tipoExameService.getAll().subscribe(tipos => this.tiposExame = tipos);
+
+    // Vet logado usa o próprio perfil: a seção do vet some e não é exigida
+    if (this.isVet) {
+      const vet = this.form.get('vetSolicitante');
+      vet?.disable();
+    }
   }
 
   onArquivoChange(event: Event) {

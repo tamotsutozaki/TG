@@ -26,11 +26,21 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrl: './main-layout.component.scss'
 })
 export class MainLayoutComponent {
-  navItems = [
+  private readonly itensPatologista = [
+    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Solicitações', icon: 'assignment', route: '/solicitacoes' },
     { label: 'Tipos de Exame', icon: 'science', route: '/tipos-exame' },
-    { label: 'Estoque', icon: 'inventory_2', route: '/insumos' }
+    { label: 'Estoque', icon: 'inventory_2', route: '/insumos' },
+    { label: 'Veterinários', icon: 'groups', route: '/veterinarios' }
+  ];
+
+  private readonly itensVeterinario = [
+    { label: 'Minhas Solicitações', icon: 'assignment', route: '/solicitacoes' }
   ];
 
   constructor(public auth: AuthService) {}
+
+  get navItems() {
+    return this.auth.isPatologista() ? this.itensPatologista : this.itensVeterinario;
+  }
 }
