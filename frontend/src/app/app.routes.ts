@@ -2,7 +2,12 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'solicitacoes', pathMatch: 'full' },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/home/home.component').then(m => m.HomeComponent)
+  },
   {
     path: 'login',
     loadComponent: () =>
@@ -46,5 +51,5 @@ export const routes: Routes = [
       }
     ]
   },
-  { path: '**', redirectTo: 'solicitacoes' }
+  { path: '**', redirectTo: '' }
 ];

@@ -1,20 +1,25 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { ConsultaPublicaDto } from '../../core/models/solicitacao.model';
 
 @Component({
   selector: 'app-consulta-publica',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatProgressSpinnerModule, MatIconModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatProgressSpinnerModule, MatIconModule, MatButtonModule],
   template: `
     <div class="consulta-container">
       <mat-card class="consulta-card">
+        <a mat-button routerLink="/" class="voltar-link">
+          <mat-icon>arrow_back</mat-icon>
+          Voltar
+        </a>
         <mat-card-header>
           <mat-card-title>LabPat — Consulta de Exame</mat-card-title>
         </mat-card-header>
@@ -66,6 +71,7 @@ import { ConsultaPublicaDto } from '../../core/models/solicitacao.model';
       min-height: 100vh; background: #f5f5f5; padding: 16px;
     }
     .consulta-card { width: 100%; max-width: 480px; padding: 8px; }
+    .voltar-link { margin: 4px 0 8px; }
     .info-grid { display: grid; gap: 16px; margin-top: 16px; }
     .info-item { display: flex; flex-direction: column; gap: 4px; }
     .label { font-size: 12px; color: #666; }
