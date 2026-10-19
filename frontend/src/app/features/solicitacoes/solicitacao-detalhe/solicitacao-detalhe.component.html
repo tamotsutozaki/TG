@@ -119,10 +119,21 @@
         </div>
       } @else if (solicitacao.status === 'EmAnalise' || solicitacao.status === 'AmostraRecebida') {
         @if (!mostrarFormLaudo) {
-          <button mat-raised-button color="primary" (click)="mostrarFormLaudo = true">
+          <button mat-raised-button color="primary" (click)="abrirFormLaudo()">
             <mat-icon>description</mat-icon> Emitir Laudo
           </button>
         } @else {
+          @if (carregandoTemplate) {
+            <div class="template-info">
+              <mat-spinner diameter="18"></mat-spinner>
+              <span>Carregando template do tipo de exame...</span>
+            </div>
+          } @else if (temTemplate) {
+            <div class="template-info">
+              <mat-icon>auto_awesome</mat-icon>
+              <span>Template do tipo de exame carregado. Edite conforme necessário.</span>
+            </div>
+          }
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Conteúdo do Laudo</mat-label>
             <textarea matInput [formControl]="laudoConteudo" rows="8"

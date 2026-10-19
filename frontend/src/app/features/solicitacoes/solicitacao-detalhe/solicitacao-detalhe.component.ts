@@ -14,6 +14,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
 import { SolicitacaoService } from '../../../core/services/solicitacao.service';
 import { LaudoService, LaudoDto } from '../../../core/services/laudo.service';
+import { TipoExameService } from '../../../core/services/tipo-exame.service';
+import { TemplateLaudoDto } from '../../../core/models/tipo-exame.model';
 import { SolicitacaoDetalhadaDto, StatusSolicitacao } from '../../../core/models/solicitacao.model';
 
 @Component({
@@ -41,6 +43,8 @@ export class SolicitacaoDetalheComponent implements OnInit {
   emitindoLaudo = false;
   baixandoPdf = false;
   mostrarFormLaudo = false;
+  carregandoTemplate = false;
+  temTemplate = false;
 
   statusOrdem: StatusSolicitacao[] = [
     'Solicitado', 'AguardandoAmostra', 'AmostraRecebida', 'EmAnalise', 'Concluido'
@@ -61,6 +65,7 @@ export class SolicitacaoDetalheComponent implements OnInit {
     private router: Router,
     private solicitacaoService: SolicitacaoService,
     private laudoService: LaudoService,
+    private tipoExameService: TipoExameService,
     private snack: MatSnackBar
   ) {}
 
@@ -116,6 +121,26 @@ export class SolicitacaoDetalheComponent implements OnInit {
         this.snack.open('Status atualizado!', 'OK', { duration: 3000 });
       },
       error: () => { this.atualizandoStatus = false; }
+    });
+  }
+
+  abrirFormLaudo() {
+    this.mostrarFormLaudo = true;
+    if (!this.solicitacao || this.laudoConteudo.value) return;
+
+    this.carregandoTemplate = true;
+    this.tipoExameService.getById(this.solicitacao.tipoExame.id).subscribe({
+      next: tipo => {
+        const template = tipo.templates
+          .reduce<TemplateLaudoDto | null>(
+            (maior, t) => (!maior || t.versao > maior.versao ? t : maior), null);
+        if (template) {
+          this.laudoConteudo.setValue(template.conteudo);
+          this.temTemplate = true;
+        }
+        this.carregandoTemplate = false;
+      },
+      error: () => { this.carregandoTemplate = false; }
     });
   }
 
