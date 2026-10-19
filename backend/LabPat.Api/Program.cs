@@ -4,6 +4,7 @@ using LabPat.Application.Features.Insumos;
 using LabPat.Application.Features.Laudos;
 using LabPat.Application.Features.Solicitacoes;
 using LabPat.Application.Features.TiposExame;
+using LabPat.Application.Features.Veterinarios;
 using LabPat.Domain.Interfaces;
 using LabPat.Infrastructure.Data;
 using LabPat.Infrastructure.ExternalServices;
@@ -90,6 +91,7 @@ builder.Services.AddScoped<ITipoExameService, TipoExameService>();
 builder.Services.AddScoped<IInsumoService, InsumoService>();
 builder.Services.AddScoped<ISolicitacaoService, SolicitacaoService>();
 builder.Services.AddScoped<ILaudoService, LaudoService>();
+builder.Services.AddScoped<IVeterinarioService, VeterinarioService>();
 
 var app = builder.Build();
 

@@ -3,7 +3,7 @@ using LabPat.Domain.Enums;
 namespace LabPat.Application.Features.Solicitacoes;
 
 public record CreateSolicitacaoInput(
-    VetSolicitanteInput VetSolicitante,
+    VetSolicitanteInput? VetSolicitante,
     TutorInput Tutor,
     PacienteInput Paciente,
     int TipoExameId,

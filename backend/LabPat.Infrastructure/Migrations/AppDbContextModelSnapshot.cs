@@ -17,7 +17,7 @@ namespace LabPat.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -358,14 +358,25 @@ namespace LabPat.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Papel")
+                        .HasColumnType("int");
+
                     b.Property<string>("SenhaHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StatusConta")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VetSolicitanteId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("VetSolicitanteId");
 
                     b.ToTable("Usuarios");
                 });
@@ -508,6 +519,15 @@ namespace LabPat.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("TipoExame");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.Usuario", b =>
+                {
+                    b.HasOne("LabPat.Domain.Entities.VetSolicitante", "VetSolicitante")
+                        .WithMany()
+                        .HasForeignKey("VetSolicitanteId");
+
+                    b.Navigation("VetSolicitante");
                 });
 
             modelBuilder.Entity("LabPat.Domain.Entities.Insumo", b =>

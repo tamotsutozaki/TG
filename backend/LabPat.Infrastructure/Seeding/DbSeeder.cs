@@ -1,4 +1,5 @@
 using LabPat.Domain.Entities;
+using LabPat.Domain.Enums;
 using LabPat.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +17,9 @@ public static class DbSeeder
             Nome = "Patologista",
             Email = "admin@labpat.com",
             SenhaHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-            Ativo = true
+            Ativo = true,
+            Papel = PapelUsuario.Patologista,
+            StatusConta = StatusConta.Aprovada
         };
 
         context.Usuarios.Add(admin);

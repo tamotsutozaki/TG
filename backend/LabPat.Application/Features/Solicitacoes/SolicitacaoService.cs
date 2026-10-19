@@ -17,18 +17,29 @@ public class SolicitacaoService(
     public async Task<IEnumerable<SolicitacaoDto>> GetAllAsync()
     {
         var solicitacoes = await solicitacaoRepository.GetAllComResumoAsync();
+
+        // Veterinário só enxerga as próprias solicitações
+        if (EhVeterinario && currentUser.VetSolicitanteId is int vetId)
+            solicitacoes = solicitacoes.Where(s => s.VetSolicitanteId == vetId);
+
         return solicitacoes.Select(ToDto);
     }
 
     public async Task<SolicitacaoDetalhadaDto?> GetByIdAsync(int id)
     {
         var s = await solicitacaoRepository.GetByIdComDetalhesAsync(id);
-        return s is null ? null : ToDetalhadoDto(s);
+        if (s is null) return null;
+
+        // Veterinário não pode acessar solicitação de outro
+        if (EhVeterinario && s.VetSolicitanteId != currentUser.VetSolicitanteId)
+            return null;
+
+        return ToDetalhadoDto(s);
     }
 
     public async Task<SolicitacaoDto> CreateAsync(CreateSolicitacaoInput input)
     {
-        var vet = await BuscarOuCriarVetAsync(input.VetSolicitante);
+        var vet = await ResolverVetAsync(input.VetSolicitante);
         var tutor = await BuscarOuCriarTutorAsync(input.Tutor);
         var paciente = await BuscarOuCriarPacienteAsync(input.Paciente, tutor);
 
@@ -98,8 +109,23 @@ public class SolicitacaoService(
 
     // --- helpers ---
 
-    private async Task<VetSolicitante> BuscarOuCriarVetAsync(VetSolicitanteInput input)
+    private bool EhVeterinario => currentUser.Papel == PapelUsuario.Veterinario.ToString();
+
+    /// <summary>
+    /// Para veterinário logado, usa o próprio perfil (ignora a seção do formulário).
+    /// Para patologista, busca ou cria o vet a partir dos dados informados.
+    /// </summary>
+    private async Task<VetSolicitante> ResolverVetAsync(VetSolicitanteInput? input)
     {
+        if (EhVeterinario && currentUser.VetSolicitanteId is int vetId)
+        {
+            var proprio = await vetRepository.GetByIdAsync(vetId);
+            if (proprio is not null) return proprio;
+        }
+
+        if (input is null)
+            throw new InvalidOperationException("Dados do veterinário solicitante são obrigatórios.");
+
         var vet = await vetRepository.GetByCrmvAsync(input.CrmvNumero, input.CrmvEstado);
         if (vet is not null) return vet;
 

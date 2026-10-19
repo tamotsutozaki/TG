@@ -6,7 +6,7 @@ namespace LabPat.Api.Controllers;
 
 [ApiController]
 [Route("api/insumos")]
-[Authorize]
+[Authorize(Roles = "Patologista")]
 public class InsumosController(IInsumoService insumoService) : ControllerBase
 {
     [HttpGet]

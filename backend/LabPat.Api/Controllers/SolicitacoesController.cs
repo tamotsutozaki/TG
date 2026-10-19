@@ -28,6 +28,7 @@ public class SolicitacoesController(ISolicitacaoService solicitacaoService) : Co
     }
 
     [HttpPut("{id:int}/status")]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusInput input)
     {
         var updated = await solicitacaoService.UpdateStatusAsync(id, input);

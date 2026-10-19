@@ -2,5 +2,6 @@ namespace LabPat.Application.Features.Auth;
 
 public interface IAuthService
 {
-    Task<AuthDto?> LoginAsync(LoginInput input);
+    Task<LoginResultado> LoginAsync(LoginInput input);
+    Task<RegistroResultado> RegistrarVetAsync(RegistrarVetInput input);
 }

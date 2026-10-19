@@ -21,6 +21,7 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
     }
 
     [HttpPost]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> Create([FromBody] CreateTipoExameInput input)
     {
         var created = await tipoExameService.CreateAsync(input);
@@ -28,6 +29,7 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTipoExameInput input)
     {
         var updated = await tipoExameService.UpdateAsync(id, input);
@@ -35,6 +37,7 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await tipoExameService.DeleteAsync(id);
@@ -42,6 +45,7 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
     }
 
     [HttpPost("{id:int}/templates")]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> AddTemplate(int id, [FromBody] CreateTemplateLaudoInput input)
     {
         var template = await tipoExameService.AddTemplateAsync(id, input);
@@ -49,6 +53,7 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
     }
 
     [HttpPost("{id:int}/insumos")]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> VincularInsumo(int id, [FromBody] VincularInsumoInput input)
     {
         var result = await tipoExameService.VincularInsumoAsync(id, input);
@@ -56,6 +61,7 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
     }
 
     [HttpDelete("{id:int}/insumos/{insumoId:int}")]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> DesvincularInsumo(int id, int insumoId)
     {
         var deleted = await tipoExameService.DesvincularInsumoAsync(id, insumoId);

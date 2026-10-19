@@ -10,6 +10,7 @@ namespace LabPat.Api.Controllers;
 public class LaudosController(ILaudoService laudoService) : ControllerBase
 {
     [HttpPost]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> Create([FromBody] CreateLaudoInput input)
     {
         try

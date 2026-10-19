@@ -15,12 +15,16 @@ public class JwtTokenGenerator(IConfiguration configuration) : ITokenGenerator
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim(ClaimTypes.Name, usuario.Nome)
+            new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+            new(ClaimTypes.Email, usuario.Email),
+            new(ClaimTypes.Name, usuario.Nome),
+            new(ClaimTypes.Role, usuario.Papel.ToString())
         };
+
+        if (usuario.VetSolicitanteId is not null)
+            claims.Add(new Claim("vetSolicitanteId", usuario.VetSolicitanteId.Value.ToString()));
 
         var expiration = double.Parse(configuration["Jwt:ExpirationHours"] ?? "8");
 
