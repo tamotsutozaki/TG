@@ -161,15 +161,31 @@ export class NovaSolicitacaoComponent implements OnInit {
       set('paciente.sexo', m[dados.sexo.toLowerCase()] ?? 'NaoInformado');
     }
     if (dados.peso) {
-      const p = parseFloat(dados.peso);
+      // Aceita "32,5" e "32.5"
+      const p = parseFloat(String(dados.peso).replace(',', '.'));
       if (!isNaN(p)) this.form.get('paciente.pesoKg')?.setValue(p);
     }
+    if (dados.idade) {
+      // Ex.: "7 anos", "6 meses", "2 anos e 6 meses"
+      const anos = /(\d+)\s*ano/i.exec(dados.idade);
+      const meses = /(\d+)\s*m[eê]s/i.exec(dados.idade);
+      if (anos) this.form.get('paciente.idadeAnos')?.setValue(Number(anos[1]));
+      if (meses) this.form.get('paciente.idadeMeses')?.setValue(Number(meses[1]));
+    }
     if (dados.tipoExame) {
-      const tipo = this.tiposExame.find(t =>
-        t.nome.toLowerCase().includes(dados.tipoExame!.toLowerCase())
-      );
+      // Casa nos dois sentidos e sem acentos: "Hemograma completo" encontra o exame "Hemograma"
+      const alvo = this.normalizar(dados.tipoExame);
+      const tipo = this.tiposExame.find(t => this.normalizar(t.nome) === alvo)
+        ?? this.tiposExame.find(t => {
+          const nome = this.normalizar(t.nome);
+          return alvo.includes(nome) || nome.includes(alvo);
+        });
       if (tipo) this.form.get('tipoExameId')?.setValue(tipo.id);
     }
+  }
+
+  private normalizar(texto: string): string {
+    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
 
   salvar() {

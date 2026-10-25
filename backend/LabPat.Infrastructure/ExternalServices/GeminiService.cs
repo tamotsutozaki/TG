@@ -1,6 +1,7 @@
 using LabPat.Application.Common;
 using LabPat.Application.Features.Gemini;
 using Microsoft.Extensions.Configuration;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -41,7 +42,7 @@ public class GeminiService(IHttpClientFactory httpClientFactory, IConfiguration 
     {
         var apiKey = configuration["Gemini:ApiKey"]
             ?? throw new InvalidOperationException("Chave da API do Gemini não configurada.");
-        var model = configuration["Gemini:Model"] ?? "gemini-1.5-flash";
+        var model = configuration["Gemini:Model"] ?? "gemini-3.8-flash";
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
         var requestBody = new
@@ -86,8 +87,7 @@ public class GeminiService(IHttpClientFactory httpClientFactory, IConfiguration 
 
         var text = geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text ?? "{}";
 
-        var dados = JsonSerializer.Deserialize<DadosExtraidos>(text,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+        var dados = JsonSerializer.Deserialize<DadosExtraidos>(text, OpcoesDadosExtraidos)
             ?? new DadosExtraidos();
 
         return new ExtrairSolicitacaoDto(
@@ -97,6 +97,38 @@ public class GeminiService(IHttpClientFactory httpClientFactory, IConfiguration 
             dados.PacienteNome, dados.Especie, dados.Raca,
             dados.Sexo, dados.Idade, dados.Peso,
             dados.TipoExame, dados.DescricaoClinica);
+    }
+
+    // O modelo às vezes devolve números (ex.: "peso": 32.5) em campos pedidos como texto
+    private static readonly JsonSerializerOptions OpcoesDadosExtraidos = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new TextoFlexivelConverter() }
+    };
+
+    private sealed class TextoFlexivelConverter : JsonConverter<string>
+    {
+        public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            switch (reader.TokenType)
+            {
+                case JsonTokenType.String:
+                    return reader.GetString();
+                case JsonTokenType.Number:
+                    return reader.TryGetDecimal(out var numero)
+                        ? numero.ToString(CultureInfo.InvariantCulture)
+                        : Encoding.UTF8.GetString(reader.ValueSpan);
+                case JsonTokenType.True:
+                case JsonTokenType.False:
+                    return reader.GetBoolean().ToString();
+                default:
+                    reader.Skip();   // objeto ou lista inesperados: ignora o campo
+                    return null;
+            }
+        }
+
+        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) =>
+            writer.WriteStringValue(value);
     }
 
     // Modelos internos para deserialização da resposta do Gemini

@@ -1,5 +1,6 @@
 using LabPat.Application.Common;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabPat.Api.Controllers;
@@ -43,6 +44,10 @@ public class GeminiController(IGeminiService geminiService) : ControllerBase
         catch (HttpRequestException ex)
         {
             return StatusCode(502, new { message = "Erro ao comunicar com a API do Gemini.", detalhe = ex.Message });
+        }
+        catch (JsonException)
+        {
+            return StatusCode(502, new { message = "Não foi possível interpretar a resposta da IA. Preencha manualmente." });
         }
     }
 }
