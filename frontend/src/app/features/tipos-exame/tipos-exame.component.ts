@@ -12,8 +12,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSelectModule } from '@angular/material/select';
+import { forkJoin } from 'rxjs';
 import { TipoExameService } from '../../core/services/tipo-exame.service';
-import { TipoExameDetalhadoDto, TipoExameDto } from '../../core/models/tipo-exame.model';
+import { InsumoService } from '../../core/services/insumo.service';
+import { ExameInsumoDto, TipoExameDetalhadoDto, TipoExameDto } from '../../core/models/tipo-exame.model';
+import { InsumoDto } from '../../core/models/insumo.model';
 
 // ── Dialog: Criar/Editar Tipo de Exame ──────────────────────────────────────
 @Component({
@@ -134,6 +138,108 @@ export class TemplatesDialogComponent {
   }
 }
 
+// ── Dialog: Insumos consumidos pelo exame ───────────────────────────────────
+// Ao emitir o laudo, o estoque desses insumos é descontado automaticamente
+@Component({
+  selector: 'app-insumos-exame-dialog',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatButtonModule, MatIconModule, MatTooltipModule, MatDividerModule],
+  template: `
+    <h2 mat-dialog-title>Insumos consumidos — {{ data.tipo.nome }}</h2>
+    <mat-dialog-content style="min-width:min(460px, 85vw); max-height:70vh; overflow-y:auto">
+      <p class="ajuda">Ao emitir um laudo deste exame, essas quantidades saem do estoque automaticamente.</p>
+      @if (vinculados.length === 0) {
+        <p class="vazio">Nenhum insumo vinculado.</p>
+      }
+      @for (v of vinculados; track v.insumoId) {
+        <div class="vinculo">
+          <span class="nome">{{ v.insumoNome }}</span>
+          <span class="qtd">{{ v.quantidadeConsumida }} {{ v.unidadeMedida }} por exame</span>
+          <button mat-icon-button color="warn" (click)="remover(v)" [disabled]="salvando" matTooltip="Remover">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      }
+      <mat-divider style="margin: 16px 0"></mat-divider>
+      @if (data.insumos.length === 0) {
+        <p class="vazio">Cadastre os insumos em Estoque para vinculá-los aqui.</p>
+      } @else {
+        <p style="font-weight:500; margin-bottom:8px">Vincular insumo</p>
+        <form [formGroup]="form" class="linha">
+          <mat-form-field appearance="outline" class="campo-insumo">
+            <mat-label>Insumo</mat-label>
+            <mat-select formControlName="insumoId">
+              @for (i of data.insumos; track i.id) {
+                <mat-option [value]="i.id">{{ i.nome }} ({{ i.unidadeMedida }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="campo-qtd">
+            <mat-label>Qtd. por exame</mat-label>
+            <input matInput type="number" min="0" step="0.1" formControlName="quantidadeConsumida">
+          </mat-form-field>
+        </form>
+        <p class="ajuda">Se o insumo já estiver vinculado, a quantidade é atualizada.</p>
+      }
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button mat-dialog-close>Fechar</button>
+      @if (data.insumos.length > 0) {
+        <button mat-raised-button color="primary" (click)="vincular()" [disabled]="salvando">Vincular</button>
+      }
+    </mat-dialog-actions>
+  `,
+  styles: [`.ajuda { font-size:13px; color:#666; margin: 0 0 8px; }
+    .vazio { color:#9e9e9e; padding: 4px 0; margin: 0; }
+    .vinculo { display:flex; align-items:center; gap:12px; padding:6px 0; border-bottom:1px solid #f0f0f0; }
+    .vinculo .nome { flex:1; font-weight:500; }
+    .vinculo .qtd { font-size:13px; color:#555; }
+    .linha { display:flex; gap:12px; }
+    .campo-insumo { flex:2; min-width:0; }
+    .campo-qtd { flex:1; min-width:0; }`]
+})
+export class InsumosExameDialogComponent {
+  form: FormGroup;
+  salvando = false;
+  vinculados: ExameInsumoDto[];
+  constructor(
+    private fb: FormBuilder,
+    @Inject(MAT_DIALOG_DATA) public data: { tipo: TipoExameDetalhadoDto; insumos: InsumoDto[] },
+    private service: TipoExameService,
+    private snack: MatSnackBar
+  ) {
+    this.vinculados = [...data.tipo.insumos];
+    this.form = this.fb.group({
+      insumoId: [null, Validators.required],
+      quantidadeConsumida: [1, [Validators.required, Validators.min(0.001)]]
+    });
+  }
+  vincular() {
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    const { insumoId, quantidadeConsumida } = this.form.value;
+    this.salvando = true;
+    this.service.vincularInsumo(this.data.tipo.id, insumoId, quantidadeConsumida).subscribe({
+      next: (v: any) => {
+        this.vinculados = [...this.vinculados.filter(x => x.insumoId !== v.insumoId), v];
+        this.form.reset({ insumoId: null, quantidadeConsumida: 1 });
+        this.salvando = false;
+      },
+      error: err => {
+        this.salvando = false;
+        this.snack.open(err?.error?.message ?? 'Não foi possível vincular.', 'OK', { duration: 4000 });
+      }
+    });
+  }
+  remover(v: ExameInsumoDto) {
+    this.salvando = true;
+    this.service.desvincularInsumo(this.data.tipo.id, v.insumoId).subscribe({
+      next: () => { this.vinculados = this.vinculados.filter(x => x.insumoId !== v.insumoId); this.salvando = false; },
+      error: () => { this.salvando = false; }
+    });
+  }
+}
+
 // ── Componente principal ─────────────────────────────────────────────────────
 @Component({
   selector: 'app-tipos-exame',
@@ -152,6 +258,7 @@ export class TiposExameComponent implements OnInit {
 
   constructor(
     private service: TipoExameService,
+    private insumoService: InsumoService,
     private dialog: MatDialog,
     private snack: MatSnackBar
   ) {}
@@ -193,6 +300,12 @@ export class TiposExameComponent implements OnInit {
       next: () => { this.carregar(); this.snack.open('Desativado!', 'OK', { duration: 3000 }); },
       error: () => this.snack.open('Erro.', 'OK', { duration: 3000 })
     });
+  }
+
+  insumos(tipo: TipoExameDto) {
+    forkJoin({ tipo: this.service.getById(tipo.id), insumos: this.insumoService.getAll() }).subscribe(data =>
+      this.dialog.open(InsumosExameDialogComponent, { data, width: '540px', maxHeight: '90vh' })
+    );
   }
 
   templates(tipo: TipoExameDto) {
