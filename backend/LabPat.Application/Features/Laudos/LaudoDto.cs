@@ -7,5 +7,6 @@ public record LaudoDto(
     string TipoExame,
     string PacienteNome,
     string Conteudo,
-    string PatologistaNome,
+    string ResponsavelTecnicoNome,
+    string ResponsavelTecnicoCrmv,
     DateTime EmitidoEm);

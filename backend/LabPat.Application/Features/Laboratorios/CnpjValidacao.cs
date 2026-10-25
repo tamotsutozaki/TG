@@ -29,6 +29,13 @@ public static partial class CnpjValidacao
             && valor[13] - '0' == CalcularDigito(valor[..13], PesosSegundoDigito);
     }
 
+    /// <summary>Formata para exibição: XX.XXX.XXX/XXXX-XX.</summary>
+    public static string Formatar(string? cnpj)
+    {
+        var v = Normalizar(cnpj);
+        return v.Length == 14 ? $"{v[..2]}.{v[2..5]}.{v[5..8]}/{v[8..12]}-{v[12..]}" : v;
+    }
+
     private static int CalcularDigito(string baseCnpj, int[] pesos)
     {
         var soma = 0;

@@ -1,4 +1,5 @@
 using LabPat.Application.Common;
+using LabPat.Application.Features.Laboratorios;
 using LabPat.Application.Features.Vinculos;
 using LabPat.Domain.Entities;
 using LabPat.Domain.Enums;
@@ -11,7 +12,7 @@ public class LaudoService(
     ISolicitacaoRepository solicitacaoRepository,
     ITipoExameRepository tipoExameRepository,
     IInsumoRepository insumoRepository,
-    IUsuarioRepository usuarioRepository,
+    ILaboratorioRepository laboratorioRepository,
     IAcessoVeterinarioService acessoVeterinario,
     ICurrentUser currentUser,
     IPdfGenerator pdfGenerator,
@@ -27,12 +28,19 @@ public class LaudoService(
 
         Validacao.Obrigatorio(input.Conteudo, "o conteúdo do laudo");
 
+        var laboratorio = await laboratorioRepository.GetByIdAsync(solicitacao.LaboratorioId)
+            ?? throw new RegraNegocioException("Laboratório não encontrado.");
+
         var laudo = new Laudo
         {
             SolicitacaoId = input.SolicitacaoId,
             Conteudo = input.Conteudo,
             EmitidoPorId = currentUser.Id,
-            EmitidoEm = DateTime.UtcNow
+            EmitidoEm = DateTime.UtcNow,
+            // Assinatura: responsável técnico do laboratório no momento da emissão
+            ResponsavelTecnicoNome = laboratorio.ResponsavelTecnicoNome,
+            ResponsavelTecnicoCrmvNumero = laboratorio.ResponsavelTecnicoCrmvNumero,
+            ResponsavelTecnicoCrmvEstado = laboratorio.ResponsavelTecnicoCrmvEstado
         };
 
         await laudoRepository.AddAsync(laudo);
@@ -53,8 +61,8 @@ public class LaudoService(
         solicitacaoRepository.Update(solicitacao);
         await unitOfWork.CommitAsync();
 
-        var patologista = await usuarioRepository.GetByIdAsync(currentUser.Id);
-        return ToDto(laudo, solicitacao, patologista?.Nome ?? string.Empty);
+        laudo.Solicitacao = solicitacao;
+        return ToDto(laudo);
     }
 
     public async Task<LaudoDto?> GetByIdAsync(int id)
@@ -82,6 +90,7 @@ public class LaudoService(
         if (laudo is null) return null;
 
         var s = laudo.Solicitacao!;
+        var laboratorio = s.Laboratorio!;
         var paciente = s.Paciente!;
         var tutor = paciente.Tutor!;
         var vet = s.VetSolicitante!;
@@ -91,22 +100,28 @@ public class LaudoService(
             : paciente.IdadeMeses.HasValue ? $"{paciente.IdadeMeses} meses" : null;
 
         var data = new LaudoPdfData(
+            LaboratorioNome: laboratorio.Nome,
+            LaboratorioCnpj: CnpjValidacao.Formatar(laboratorio.Cnpj),
+            LaboratorioEndereco: $"{laboratorio.Endereco} - {laboratorio.Cidade}/{laboratorio.Uf}",
+            LaboratorioTelefone: laboratorio.Telefone,
+            LaboratorioEmail: laboratorio.Email,
             CodigoPublico: s.CodigoPublico,
             TipoExame: s.TipoExame!.Nome,
             PacienteNome: paciente.Nome,
             Especie: paciente.Especie,
             Raca: paciente.Raca,
-            Sexo: paciente.Sexo.ToString(),
+            Sexo: DescreverSexo(paciente.Sexo),
             Idade: idade,
             Peso: paciente.PesoKg.HasValue ? $"{paciente.PesoKg:F2} kg" : null,
             TutorNome: tutor.Nome,
             VetSolicitanteNome: vet.Nome,
             CrmvNumero: vet.CrmvNumero,
             CrmvEstado: vet.CrmvEstado,
-            DataSolicitacao: s.CriadoEm,
-            DataEmissao: laudo.EmitidoEm,
+            DataSolicitacao: HorarioBrasilia.DeUtc(s.CriadoEm),
+            DataEmissao: HorarioBrasilia.DeUtc(laudo.EmitidoEm),
             Conteudo: laudo.Conteudo,
-            PatologistaNome: laudo.EmitidoPor?.Nome ?? string.Empty);
+            ResponsavelTecnicoNome: laudo.ResponsavelTecnicoNome,
+            ResponsavelTecnicoCrmv: FormatarCrmv(laudo));
 
         return pdfGenerator.GerarLaudo(data);
     }
@@ -145,21 +160,23 @@ public class LaudoService(
         }
     }
 
+    private static string FormatarCrmv(Laudo l) =>
+        $"CRMV-{l.ResponsavelTecnicoCrmvEstado} {l.ResponsavelTecnicoCrmvNumero}";
+
+    private static string DescreverSexo(SexoPaciente sexo) => sexo switch
+    {
+        SexoPaciente.Macho => "Macho",
+        SexoPaciente.Femea => "Fêmea",
+        _ => "Não informado"
+    };
+
     private static LaudoDto ToDto(Laudo l) =>
         new(l.Id, l.SolicitacaoId,
             l.Solicitacao?.CodigoPublico ?? string.Empty,
             l.Solicitacao?.TipoExame?.Nome ?? string.Empty,
             l.Solicitacao?.Paciente?.Nome ?? string.Empty,
             l.Conteudo,
-            l.EmitidoPor?.Nome ?? string.Empty,
-            l.EmitidoEm);
-
-    private static LaudoDto ToDto(Laudo l, Solicitacao s, string patologistaNome) =>
-        new(l.Id, l.SolicitacaoId,
-            s.CodigoPublico,
-            s.TipoExame?.Nome ?? string.Empty,
-            s.Paciente?.Nome ?? string.Empty,
-            l.Conteudo,
-            patologistaNome,
+            l.ResponsavelTecnicoNome,
+            FormatarCrmv(l),
             l.EmitidoEm);
 }

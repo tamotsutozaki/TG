@@ -1,6 +1,7 @@
 using LabPat.Application.Common;
 using LabPat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LabPat.Infrastructure.Data;
 
@@ -25,6 +26,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantContext
     // nesse caso os filtros abaixo não retornam nenhum registro (negado por padrão).
     private int? LaboratorioIdAtual => tenantContext.LaboratorioId;
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        // Todas as datas são gravadas em UTC; ao ler, marca como UTC para a API devolver
+        // o horário com "Z" e o navegador converter para o fuso de quem está usando
+        configurationBuilder.Properties<DateTime>().HaveConversion<DataUtcConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<DataUtcConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -42,6 +51,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantContext
         modelBuilder.Entity<Laudo>()
             .HasIndex(l => l.SolicitacaoId)
             .IsUnique();
+
+        modelBuilder.Entity<Laudo>(e =>
+        {
+            e.Property(l => l.ResponsavelTecnicoCrmvNumero).HasMaxLength(6);
+            e.Property(l => l.ResponsavelTecnicoCrmvEstado).HasMaxLength(2);
+        });
 
         // Email único por Usuário
         modelBuilder.Entity<Usuario>()
@@ -190,3 +205,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantContext
         }
     }
 }
+
+internal class DataUtcConverter() : ValueConverter<DateTime, DateTime>(
+    gravar => gravar,
+    ler => DateTime.SpecifyKind(ler, DateTimeKind.Utc));

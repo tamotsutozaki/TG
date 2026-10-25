@@ -266,6 +266,20 @@ namespace LabPat.Infrastructure.Migrations
                     b.Property<string>("PdfUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ResponsavelTecnicoCrmvEstado")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("ResponsavelTecnicoCrmvNumero")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<string>("ResponsavelTecnicoNome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("SolicitacaoId")
                         .HasColumnType("int");
 

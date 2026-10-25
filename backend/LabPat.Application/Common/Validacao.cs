@@ -26,6 +26,19 @@ public static class Validacao
 
     public static string NormalizarEmail(string email) => email.Trim().ToLowerInvariant();
 
+    /// <summary>Valida e normaliza o e-mail; lança RegraNegocioException se for inválido.</summary>
+    public static string EmailObrigatorio(string? email) =>
+        EmailValido(email)
+            ? NormalizarEmail(email!)
+            : throw new RegraNegocioException("E-mail inválido.");
+
+    /// <summary>Lança RegraNegocioException se a senha não atender ao tamanho mínimo.</summary>
+    public static void SenhaObrigatoria(string? senha)
+    {
+        if (!SenhaValida(senha))
+            throw new RegraNegocioException($"A senha deve ter pelo menos {TamanhoMinimoSenha} caracteres.");
+    }
+
     /// <summary>Lança RegraNegocioException se o campo obrigatório estiver vazio.</summary>
     public static string Obrigatorio(string? valor, string campo) =>
         string.IsNullOrWhiteSpace(valor)

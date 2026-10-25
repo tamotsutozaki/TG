@@ -33,8 +33,8 @@ public class AuthService(
     public async Task RegistrarVetAsync(RegistrarVetInput input)
     {
         var nome = Validacao.Obrigatorio(input.Nome, "o nome");
-        var email = ValidarEmail(input.Email);
-        ValidarSenha(input.Senha);
+        var email = Validacao.EmailObrigatorio(input.Email);
+        Validacao.SenhaObrigatoria(input.Senha);
 
         if (!CrmvValidacao.FormatoValido(input.CrmvNumero, input.CrmvEstado))
             throw new RegraNegocioException("CRMV inválido. Verifique o número e a UF.");
@@ -73,52 +73,36 @@ public class AuthService(
     {
         var convite = await ObterConviteValidoAsync(input.Token);
 
-        var nome = Validacao.Obrigatorio(input.Nome, "o nome do laboratório");
-        var endereco = Validacao.Obrigatorio(input.Endereco, "o endereço");
-        var cidade = Validacao.Obrigatorio(input.Cidade, "a cidade");
-        var telefone = Validacao.Obrigatorio(input.Telefone, "o telefone");
-        var rtNome = Validacao.Obrigatorio(input.ResponsavelTecnicoNome, "o nome do responsável técnico");
-
-        if (!Validacao.UfValida(input.Uf))
-            throw new RegraNegocioException("UF inválida.");
+        // O e-mail informado é o login e também o contato impresso no laudo
+        var dados = DadosLaboratorio.Validar(
+            input.Nome, input.Endereco, input.Cidade, input.Uf, input.Telefone, input.Email,
+            input.ResponsavelTecnicoNome, input.ResponsavelTecnicoCrmvNumero, input.ResponsavelTecnicoCrmvEstado);
 
         var cnpj = CnpjValidacao.Normalizar(input.Cnpj);
         if (!CnpjValidacao.Valido(cnpj))
             throw new RegraNegocioException("CNPJ inválido.");
 
-        if (!CrmvValidacao.FormatoValido(input.ResponsavelTecnicoCrmvNumero, input.ResponsavelTecnicoCrmvEstado))
-            throw new RegraNegocioException("CRMV do responsável técnico inválido. Verifique o número e a UF.");
-
-        var email = ValidarEmail(input.Email);
-        ValidarSenha(input.Senha);
+        Validacao.SenhaObrigatoria(input.Senha);
 
         if (await laboratorioRepository.CnpjExisteAsync(cnpj))
             throw new ConflitoException("Já existe um laboratório cadastrado com este CNPJ.");
 
-        if (await usuarioRepository.EmailExisteAsync(email))
+        if (await usuarioRepository.EmailExisteAsync(dados.Email))
             throw new ConflitoException("Já existe um cadastro com este e-mail.");
 
         var laboratorio = new Laboratorio
         {
-            Nome = nome,
             Cnpj = cnpj,
-            Endereco = endereco,
-            Cidade = cidade,
-            Uf = input.Uf.Trim().ToUpperInvariant(),
-            Telefone = telefone,
-            Email = email,
-            ResponsavelTecnicoNome = rtNome,
-            ResponsavelTecnicoCrmvNumero = input.ResponsavelTecnicoCrmvNumero.Trim(),
-            ResponsavelTecnicoCrmvEstado = input.ResponsavelTecnicoCrmvEstado.Trim().ToUpperInvariant(),
             CodigoVinculo = await GerarCodigoVinculoAsync()
         };
+        dados.AplicarEm(laboratorio);
         await laboratorioRepository.AddAsync(laboratorio);
 
         // O laboratório tem um único acesso, compartilhado por quem trabalha nele
         var usuario = new Usuario
         {
-            Nome = nome,
-            Email = email,
+            Nome = dados.Nome,
+            Email = dados.Email,
             SenhaHash = passwordHasher.Hash(input.Senha),
             Papel = PapelUsuario.Patologista,
             Laboratorio = laboratorio
@@ -157,19 +141,5 @@ public class AuthService(
         do codigo = GeradorCodigo.GerarCodigo(8);
         while (await laboratorioRepository.CodigoVinculoExisteAsync(codigo));
         return codigo;
-    }
-
-    private static string ValidarEmail(string? email)
-    {
-        if (!Validacao.EmailValido(email))
-            throw new RegraNegocioException("E-mail inválido.");
-        return Validacao.NormalizarEmail(email!);
-    }
-
-    private static void ValidarSenha(string? senha)
-    {
-        if (!Validacao.SenhaValida(senha))
-            throw new RegraNegocioException(
-                $"A senha deve ter pelo menos {Validacao.TamanhoMinimoSenha} caracteres.");
     }
 }

@@ -4,6 +4,7 @@ using LabPat.Application.Features.Admin;
 using LabPat.Application.Features.Auth;
 using LabPat.Application.Features.Insumos;
 using LabPat.Application.Features.Laudos;
+using LabPat.Application.Features.Perfil;
 using LabPat.Application.Features.Solicitacoes;
 using LabPat.Application.Features.TiposExame;
 using LabPat.Application.Features.Veterinarios;
@@ -116,6 +117,7 @@ builder.Services.AddScoped<IVeterinarioService, VeterinarioService>();
 builder.Services.AddScoped<IVinculoService, VinculoService>();
 builder.Services.AddScoped<IAcessoVeterinarioService, AcessoVeterinarioService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IPerfilService, PerfilService>();
 
 // Exceções de regra de negócio -> 400/403/409
 builder.Services.AddExceptionHandler<ExcecaoHandler>();

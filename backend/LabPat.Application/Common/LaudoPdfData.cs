@@ -1,6 +1,13 @@
 namespace LabPat.Application.Common;
 
+// Datas já no horário de Brasília
 public record LaudoPdfData(
+    // Cabeçalho: dados do laboratório
+    string LaboratorioNome,
+    string LaboratorioCnpj,
+    string LaboratorioEndereco,
+    string LaboratorioTelefone,
+    string LaboratorioEmail,
     string CodigoPublico,
     string TipoExame,
     string PacienteNome,
@@ -16,4 +23,6 @@ public record LaudoPdfData(
     DateTime DataSolicitacao,
     DateTime DataEmissao,
     string Conteudo,
-    string PatologistaNome);
+    // Assinatura: responsável técnico no momento da emissão
+    string ResponsavelTecnicoNome,
+    string ResponsavelTecnicoCrmv);
