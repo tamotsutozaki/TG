@@ -6,7 +6,7 @@ namespace LabPat.Api.Controllers;
 
 [ApiController]
 [Route("api/solicitacoes")]
-[Authorize]
+[Authorize(Roles = "Patologista,Veterinario")]
 public class SolicitacoesController(ISolicitacaoService solicitacaoService) : ControllerBase
 {
     [HttpGet]

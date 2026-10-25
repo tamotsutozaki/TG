@@ -1,8 +1,10 @@
 namespace LabPat.Application.Features.Veterinarios;
 
+// Gestão, pelo laboratório logado, dos veterinários vinculados a ele
 public interface IVeterinarioService
 {
-    Task<IEnumerable<VeterinarioContaDto>> ListarAsync();
-    Task<bool> AprovarAsync(int id);
-    Task<bool> RecusarAsync(int id);
+    Task<IEnumerable<VinculoVeterinarioDto>> ListarAsync();
+    Task<VinculoVeterinarioDto?> AprovarAsync(int vinculoId);
+    Task<VinculoVeterinarioDto?> RecusarAsync(int vinculoId);
+    Task<VinculoVeterinarioDto?> DesfazerAsync(int vinculoId);
 }

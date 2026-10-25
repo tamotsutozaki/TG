@@ -10,11 +10,15 @@ public class Usuario : EntityBase
     public bool Ativo { get; set; } = true;
 
     public PapelUsuario Papel { get; set; } = PapelUsuario.Patologista;
-    public StatusConta StatusConta { get; set; } = StatusConta.Aprovada;
 
-    // Preenchido apenas para usuários com papel de Veterinário
-    public int? VetSolicitanteId { get; set; }
-    public VetSolicitante? VetSolicitante { get; set; }
+    // Preenchido apenas para a conta de um laboratório (papel Patologista)
+    public int? LaboratorioId { get; set; }
+    public Laboratorio? Laboratorio { get; set; }
+
+    // Preenchidos apenas para usuários com papel de Veterinário
+    public string? CrmvNumero { get; set; }
+    public string? CrmvEstado { get; set; }
+    public string? Telefone { get; set; }
 
     public ICollection<Laudo> Laudos { get; set; } = [];
     public ICollection<HistoricoStatus> AlteracoesStatus { get; set; } = [];

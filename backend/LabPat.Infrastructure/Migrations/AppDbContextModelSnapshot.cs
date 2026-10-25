@@ -22,6 +22,58 @@ namespace LabPat.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("LabPat.Domain.Entities.ConviteLaboratorio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CriadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descricao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiraEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("LaboratorioId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RevogadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("UsadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Versao")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CriadoPorId");
+
+                    b.HasIndex("LaboratorioId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("ConvitesLaboratorio");
+                });
+
             modelBuilder.Entity("LabPat.Domain.Entities.ExameInsumo", b =>
                 {
                     b.Property<int>("TipoExameId")
@@ -90,6 +142,9 @@ namespace LabPat.Infrastructure.Migrations
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("LaboratorioId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -108,7 +163,83 @@ namespace LabPat.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LaboratorioId");
+
                     b.ToTable("Insumos");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.Laboratorio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Cidade")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cnpj")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
+
+                    b.Property<string>("CodigoVinculo")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Endereco")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResponsavelTecnicoCrmvEstado")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("ResponsavelTecnicoCrmvNumero")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<string>("ResponsavelTecnicoNome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Telefone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Uf")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cnpj")
+                        .IsUnique();
+
+                    b.HasIndex("CodigoVinculo")
+                        .IsUnique();
+
+                    b.ToTable("Laboratorios");
                 });
 
             modelBuilder.Entity("LabPat.Domain.Entities.Laudo", b =>
@@ -169,6 +300,9 @@ namespace LabPat.Infrastructure.Migrations
                     b.Property<int?>("IdadeMeses")
                         .HasColumnType("int");
 
+                    b.Property<int>("LaboratorioId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -187,6 +321,8 @@ namespace LabPat.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LaboratorioId");
 
                     b.HasIndex("TutorId");
 
@@ -211,6 +347,9 @@ namespace LabPat.Infrastructure.Migrations
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("CriadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("DataConclusao")
                         .HasColumnType("datetime2");
 
@@ -219,6 +358,9 @@ namespace LabPat.Infrastructure.Migrations
 
                     b.Property<string>("DescricaoClinica")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LaboratorioId")
+                        .HasColumnType("int");
 
                     b.Property<int>("MetodoEntrada")
                         .HasColumnType("int");
@@ -242,6 +384,10 @@ namespace LabPat.Infrastructure.Migrations
 
                     b.HasIndex("CodigoPublico")
                         .IsUnique();
+
+                    b.HasIndex("CriadoPorId");
+
+                    b.HasIndex("LaboratorioId");
 
                     b.HasIndex("PacienteId");
 
@@ -297,6 +443,9 @@ namespace LabPat.Infrastructure.Migrations
                     b.Property<string>("Descricao")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("LaboratorioId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -305,6 +454,8 @@ namespace LabPat.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LaboratorioId");
 
                     b.ToTable("TiposExame");
                 });
@@ -323,6 +474,9 @@ namespace LabPat.Infrastructure.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("LaboratorioId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -332,6 +486,8 @@ namespace LabPat.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LaboratorioId");
 
                     b.ToTable("Tutores");
                 });
@@ -350,9 +506,20 @@ namespace LabPat.Infrastructure.Migrations
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CrmvEstado")
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("CrmvNumero")
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("LaboratorioId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -365,18 +532,19 @@ namespace LabPat.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StatusConta")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("VetSolicitanteId")
-                        .HasColumnType("int");
+                    b.Property<string>("Telefone")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("VetSolicitanteId");
+                    b.HasIndex("LaboratorioId");
+
+                    b.HasIndex("CrmvNumero", "CrmvEstado")
+                        .IsUnique()
+                        .HasFilter("[CrmvNumero] IS NOT NULL AND [Ativo] = 1");
 
                     b.ToTable("Usuarios");
                 });
@@ -394,14 +562,19 @@ namespace LabPat.Infrastructure.Migrations
 
                     b.Property<string>("CrmvEstado")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
 
                     b.Property<string>("CrmvNumero")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
 
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LaboratorioId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -412,7 +585,64 @@ namespace LabPat.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LaboratorioId", "CrmvNumero", "CrmvEstado")
+                        .IsUnique();
+
                     b.ToTable("VetsSolicitantes");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.VinculoVeterinario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LaboratorioId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RespondidoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("SolicitadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VeterinarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LaboratorioId");
+
+                    b.HasIndex("VeterinarioId", "LaboratorioId")
+                        .IsUnique();
+
+                    b.ToTable("VinculosVeterinario");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.ConviteLaboratorio", b =>
+                {
+                    b.HasOne("LabPat.Domain.Entities.Usuario", "CriadoPor")
+                        .WithMany()
+                        .HasForeignKey("CriadoPorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CriadoPor");
+
+                    b.Navigation("Laboratorio");
                 });
 
             modelBuilder.Entity("LabPat.Domain.Entities.ExameInsumo", b =>
@@ -453,6 +683,17 @@ namespace LabPat.Infrastructure.Migrations
                     b.Navigation("Solicitacao");
                 });
 
+            modelBuilder.Entity("LabPat.Domain.Entities.Insumo", b =>
+                {
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Laboratorio");
+                });
+
             modelBuilder.Entity("LabPat.Domain.Entities.Laudo", b =>
                 {
                     b.HasOne("LabPat.Domain.Entities.Usuario", "EmitidoPor")
@@ -474,17 +715,37 @@ namespace LabPat.Infrastructure.Migrations
 
             modelBuilder.Entity("LabPat.Domain.Entities.Paciente", b =>
                 {
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("LabPat.Domain.Entities.Tutor", "Tutor")
                         .WithMany("Pacientes")
                         .HasForeignKey("TutorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Laboratorio");
+
                     b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("LabPat.Domain.Entities.Solicitacao", b =>
                 {
+                    b.HasOne("LabPat.Domain.Entities.Usuario", "CriadoPor")
+                        .WithMany()
+                        .HasForeignKey("CriadoPorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("LabPat.Domain.Entities.Paciente", "Paciente")
                         .WithMany("Solicitacoes")
                         .HasForeignKey("PacienteId")
@@ -502,6 +763,10 @@ namespace LabPat.Infrastructure.Migrations
                         .HasForeignKey("VetSolicitanteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CriadoPor");
+
+                    b.Navigation("Laboratorio");
 
                     b.Navigation("Paciente");
 
@@ -521,18 +786,76 @@ namespace LabPat.Infrastructure.Migrations
                     b.Navigation("TipoExame");
                 });
 
+            modelBuilder.Entity("LabPat.Domain.Entities.TipoExame", b =>
+                {
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Laboratorio");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.Tutor", b =>
+                {
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Laboratorio");
+                });
+
             modelBuilder.Entity("LabPat.Domain.Entities.Usuario", b =>
                 {
-                    b.HasOne("LabPat.Domain.Entities.VetSolicitante", "VetSolicitante")
-                        .WithMany()
-                        .HasForeignKey("VetSolicitanteId");
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany("Usuarios")
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("VetSolicitante");
+                    b.Navigation("Laboratorio");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.VetSolicitante", b =>
+                {
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Laboratorio");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.VinculoVeterinario", b =>
+                {
+                    b.HasOne("LabPat.Domain.Entities.Laboratorio", "Laboratorio")
+                        .WithMany()
+                        .HasForeignKey("LaboratorioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LabPat.Domain.Entities.Usuario", "Veterinario")
+                        .WithMany()
+                        .HasForeignKey("VeterinarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Laboratorio");
+
+                    b.Navigation("Veterinario");
                 });
 
             modelBuilder.Entity("LabPat.Domain.Entities.Insumo", b =>
                 {
                     b.Navigation("ExameInsumos");
+                });
+
+            modelBuilder.Entity("LabPat.Domain.Entities.Laboratorio", b =>
+                {
+                    b.Navigation("Usuarios");
                 });
 
             modelBuilder.Entity("LabPat.Domain.Entities.Paciente", b =>

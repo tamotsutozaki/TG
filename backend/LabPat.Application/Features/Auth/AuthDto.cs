@@ -6,17 +6,9 @@ public enum LoginStatus
 {
     Sucesso,
     CredenciaisInvalidas,
-    ContaPendente,
-    ContaRecusada
+    ContaDesativada
 }
 
 public record LoginResultado(LoginStatus Status, AuthDto? Auth = null);
 
-public enum RegistroStatus
-{
-    Sucesso,
-    EmailJaCadastrado,
-    CrmvInvalido
-}
-
-public record RegistroResultado(RegistroStatus Status);
+public record ConviteInfoDto(string? Descricao, DateTime ExpiraEm);

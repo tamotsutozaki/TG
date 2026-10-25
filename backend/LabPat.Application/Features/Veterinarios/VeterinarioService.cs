@@ -1,39 +1,52 @@
+using LabPat.Application.Common;
+using LabPat.Domain.Entities;
 using LabPat.Domain.Enums;
 using LabPat.Domain.Interfaces;
 
 namespace LabPat.Application.Features.Veterinarios;
 
 public class VeterinarioService(
-    IUsuarioRepository usuarioRepository,
+    IVinculoVeterinarioRepository vinculoRepository,
     IUnitOfWork unitOfWork) : IVeterinarioService
 {
-    public async Task<IEnumerable<VeterinarioContaDto>> ListarAsync()
+    public async Task<IEnumerable<VinculoVeterinarioDto>> ListarAsync()
     {
-        var veterinarios = await usuarioRepository.GetVeterinariosAsync();
-        return veterinarios.Select(u => new VeterinarioContaDto(
-            u.Id,
-            u.Nome,
-            u.Email,
-            u.VetSolicitante?.CrmvNumero ?? string.Empty,
-            u.VetSolicitante?.CrmvEstado ?? string.Empty,
-            u.VetSolicitante?.Telefone,
-            u.StatusConta.ToString(),
-            u.CriadoEm));
+        var vinculos = await vinculoRepository.GetDoLaboratorioAsync();
+        return vinculos.Select(ToDto);
     }
 
-    public Task<bool> AprovarAsync(int id) => AlterarStatusAsync(id, StatusConta.Aprovada);
+    public Task<VinculoVeterinarioDto?> AprovarAsync(int vinculoId) =>
+        AlterarStatusAsync(vinculoId, StatusVinculo.Pendente, StatusVinculo.Aprovado,
+            "Só é possível aprovar pedidos pendentes.");
 
-    public Task<bool> RecusarAsync(int id) => AlterarStatusAsync(id, StatusConta.Recusada);
+    public Task<VinculoVeterinarioDto?> RecusarAsync(int vinculoId) =>
+        AlterarStatusAsync(vinculoId, StatusVinculo.Pendente, StatusVinculo.Recusado,
+            "Só é possível recusar pedidos pendentes.");
 
-    private async Task<bool> AlterarStatusAsync(int id, StatusConta status)
+    public Task<VinculoVeterinarioDto?> DesfazerAsync(int vinculoId) =>
+        AlterarStatusAsync(vinculoId, StatusVinculo.Aprovado, StatusVinculo.Desfeito,
+            "Só é possível desfazer vínculos aprovados.");
+
+    private async Task<VinculoVeterinarioDto?> AlterarStatusAsync(
+        int vinculoId, StatusVinculo statusEsperado, StatusVinculo novoStatus, string erro)
     {
-        var usuario = await usuarioRepository.GetByIdAsync(id);
-        if (usuario is null || usuario.Papel != PapelUsuario.Veterinario)
-            return false;
+        // Consulta filtrada: o laboratório só encontra vínculos dele
+        var vinculo = await vinculoRepository.GetByIdComVeterinarioAsync(vinculoId);
+        if (vinculo is null) return null;
 
-        usuario.StatusConta = status;
-        usuarioRepository.Update(usuario);
+        if (vinculo.Status != statusEsperado)
+            throw new RegraNegocioException(erro);
+
+        vinculo.Status = novoStatus;
+        vinculo.RespondidoEm = DateTime.UtcNow;
+        vinculoRepository.Update(vinculo);
         await unitOfWork.CommitAsync();
-        return true;
+
+        return ToDto(vinculo);
     }
+
+    private static VinculoVeterinarioDto ToDto(VinculoVeterinario v) =>
+        new(v.Id, v.VeterinarioId, v.Veterinario.Nome, v.Veterinario.Email,
+            v.Veterinario.CrmvNumero ?? string.Empty, v.Veterinario.CrmvEstado ?? string.Empty,
+            v.Veterinario.Telefone, v.Status, v.SolicitadoEm, v.RespondidoEm);
 }

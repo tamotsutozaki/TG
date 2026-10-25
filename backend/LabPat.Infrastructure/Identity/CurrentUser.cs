@@ -6,6 +6,8 @@ namespace LabPat.Infrastructure.Identity;
 
 public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser
 {
+    public const string LaboratorioClaim = "laboratorioId";
+
     private ClaimsPrincipal? User => httpContextAccessor.HttpContext?.User;
 
     public int Id
@@ -19,11 +21,11 @@ public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUse
 
     public string? Papel => User?.FindFirst(ClaimTypes.Role)?.Value;
 
-    public int? VetSolicitanteId
+    public int? LaboratorioId
     {
         get
         {
-            var claim = User?.FindFirst("vetSolicitanteId");
+            var claim = User?.FindFirst(LaboratorioClaim);
             return int.TryParse(claim?.Value, out var id) ? id : null;
         }
     }

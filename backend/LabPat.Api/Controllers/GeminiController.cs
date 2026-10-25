@@ -6,7 +6,7 @@ namespace LabPat.Api.Controllers;
 
 [ApiController]
 [Route("api/gemini")]
-[Authorize]
+[Authorize(Roles = "Patologista,Veterinario")]
 public class GeminiController(IGeminiService geminiService) : ControllerBase
 {
     private static readonly HashSet<string> MimeTypesPermitidos =

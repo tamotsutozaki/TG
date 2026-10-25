@@ -1,16 +1,10 @@
+using LabPat.Application.Common;
 using System.Text.RegularExpressions;
 
 namespace LabPat.Application.Features.Auth;
 
 public static partial class CrmvValidacao
 {
-    private static readonly HashSet<string> UnidadesFederativas =
-    [
-        "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
-        "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
-        "RS", "RO", "RR", "SC", "SP", "SE", "TO"
-    ];
-
     [GeneratedRegex(@"^\d{1,6}$")]
     private static partial Regex NumeroRegex();
 
@@ -23,7 +17,6 @@ public static partial class CrmvValidacao
         if (string.IsNullOrWhiteSpace(numero) || string.IsNullOrWhiteSpace(estado))
             return false;
 
-        return UnidadesFederativas.Contains(estado.Trim().ToUpperInvariant())
-            && NumeroRegex().IsMatch(numero.Trim());
+        return Validacao.UfValida(estado) && NumeroRegex().IsMatch(numero.Trim());
     }
 }

@@ -1,4 +1,6 @@
 using LabPat.Application.Common;
+using LabPat.Application.Features.Auth;
+using LabPat.Application.Features.Vinculos;
 using LabPat.Domain.Entities;
 using LabPat.Domain.Enums;
 using LabPat.Domain.Interfaces;
@@ -11,60 +13,81 @@ public class SolicitacaoService(
     ITutorRepository tutorRepository,
     IPacienteRepository pacienteRepository,
     ITipoExameRepository tipoExameRepository,
+    IUsuarioRepository usuarioRepository,
+    ILaboratorioRepository laboratorioRepository,
+    IAcessoVeterinarioService acessoVeterinario,
     ICurrentUser currentUser,
     IUnitOfWork unitOfWork) : ISolicitacaoService
 {
     public async Task<IEnumerable<SolicitacaoDto>> GetAllAsync()
     {
-        var solicitacoes = await solicitacaoRepository.GetAllComResumoAsync();
+        // Laboratório: consulta já filtrada pelo laboratório logado
+        if (!EhVeterinario)
+            return (await solicitacaoRepository.GetAllComResumoAsync()).Select(ToDto);
 
-        // Veterinário só enxerga as próprias solicitações
-        if (EhVeterinario && currentUser.VetSolicitanteId is int vetId)
-            solicitacoes = solicitacoes.Where(s => s.VetSolicitanteId == vetId);
-
-        return solicitacoes.Select(ToDto);
+        var acesso = await acessoVeterinario.ObterAsync();
+        return (await solicitacaoRepository.GetVisiveisAoVeterinarioAsync(acesso)).Select(ToDto);
     }
 
     public async Task<SolicitacaoDetalhadaDto?> GetByIdAsync(int id)
     {
-        var s = await solicitacaoRepository.GetByIdComDetalhesAsync(id);
-        if (s is null) return null;
+        if (!EhVeterinario)
+        {
+            var s = await solicitacaoRepository.GetByIdComDetalhesAsync(id);
+            return s is null ? null : ToDetalhadoDto(s);
+        }
 
-        // Veterinário não pode acessar solicitação de outro
-        if (EhVeterinario && s.VetSolicitanteId != currentUser.VetSolicitanteId)
-            return null;
+        var acesso = await acessoVeterinario.ObterAsync();
+        var visivel = await solicitacaoRepository.GetByIdVisivelAoVeterinarioAsync(id, acesso);
 
-        return ToDetalhadoDto(s);
+        // Observações internas são do laboratório; não vão para o veterinário
+        return visivel is null ? null : ToDetalhadoDto(visivel) with { ObservacoesInternas = null };
     }
 
     public async Task<SolicitacaoDto> CreateAsync(CreateSolicitacaoInput input)
     {
-        var vet = await ResolverVetAsync(input.VetSolicitante);
+        VetSolicitante vet;
+        if (EhVeterinario)
+        {
+            if (input.LaboratorioId is not int laboratorioId)
+                throw new RegraNegocioException("Escolha o laboratório que vai realizar o exame.");
+
+            // A partir daqui, as consultas e inclusões ficam no escopo do laboratório escolhido
+            await acessoVeterinario.EntrarNoLaboratorioAsync(laboratorioId);
+            vet = await ResolverVetDoUsuarioLogadoAsync();
+        }
+        else
+        {
+            vet = await ResolverVetDoFormularioAsync(input.VetSolicitante);
+        }
+
+        // Consulta filtrada: tipos de exame de outro laboratório não são encontrados
+        var tipoExame = await tipoExameRepository.GetByIdAsync(input.TipoExameId);
+        if (tipoExame is null || !tipoExame.Ativo)
+            throw new RegraNegocioException("Tipo de exame inválido.");
+
         var tutor = await BuscarOuCriarTutorAsync(input.Tutor);
         var paciente = await BuscarOuCriarPacienteAsync(input.Paciente, tutor);
 
-        var codigo = await GerarCodigoUnicoAsync();
-        var tipoExame = await tipoExameRepository.GetByIdAsync(input.TipoExameId);
-
         var solicitacao = new Solicitacao
         {
-            CodigoPublico = codigo,
+            CodigoPublico = await GerarCodigoUnicoAsync(),
             Paciente = paciente,
             VetSolicitante = vet,
-            TipoExameId = input.TipoExameId,
+            TipoExame = tipoExame,
+            CriadoPorId = currentUser.Id,
             Status = StatusSolicitacao.Solicitado,
             DescricaoClinica = input.DescricaoClinica,
             MetodoEntrada = input.MetodoEntrada,
             ArquivoEntradaUrl = input.ArquivoEntradaUrl,
-            DataEstimadaConclusao = tipoExame is not null
-                ? DateTime.UtcNow.AddDays(tipoExame.PrazoEstimadoDias)
-                : null
+            DataEstimadaConclusao = DateTime.UtcNow.AddDays(tipoExame.PrazoEstimadoDias)
         };
 
         await solicitacaoRepository.AddAsync(solicitacao);
         await unitOfWork.CommitAsync();
 
-        return ToDto(solicitacao, tipoExame?.Nome ?? string.Empty, paciente.Nome, vet.Nome);
+        var laboratorio = await laboratorioRepository.GetByIdAsync(solicitacao.LaboratorioId);
+        return ToDto(solicitacao, tipoExame.Nome, paciente.Nome, vet.Nome, laboratorio?.Nome ?? string.Empty);
     }
 
     public async Task<SolicitacaoDetalhadaDto?> UpdateStatusAsync(int id, UpdateStatusInput input)
@@ -100,6 +123,7 @@ public class SolicitacaoService(
 
         return new ConsultaPublicaDto(
             s.CodigoPublico,
+            s.Laboratorio?.Nome ?? string.Empty,
             s.Status.ToString(),
             s.TipoExame?.Nome ?? string.Empty,
             s.Paciente?.Nome ?? string.Empty,
@@ -112,28 +136,50 @@ public class SolicitacaoService(
     private bool EhVeterinario => currentUser.Papel == PapelUsuario.Veterinario.ToString();
 
     /// <summary>
-    /// Para veterinário logado, usa o próprio perfil (ignora a seção do formulário).
-    /// Para patologista, busca ou cria o vet a partir dos dados informados.
+    /// Veterinário logado: usa o cadastro que o laboratório já tem com o CRMV dele
+    /// ou cria um a partir do perfil da conta (ignora a seção do formulário).
     /// </summary>
-    private async Task<VetSolicitante> ResolverVetAsync(VetSolicitanteInput? input)
+    private async Task<VetSolicitante> ResolverVetDoUsuarioLogadoAsync()
     {
-        if (EhVeterinario && currentUser.VetSolicitanteId is int vetId)
-        {
-            var proprio = await vetRepository.GetByIdAsync(vetId);
-            if (proprio is not null) return proprio;
-        }
+        var usuario = await usuarioRepository.GetByIdAsync(currentUser.Id)
+            ?? throw new AcessoNegadoException("Conta não encontrada.");
 
-        if (input is null)
-            throw new InvalidOperationException("Dados do veterinário solicitante são obrigatórios.");
-
-        var vet = await vetRepository.GetByCrmvAsync(input.CrmvNumero, input.CrmvEstado);
+        var vet = await vetRepository.GetByCrmvAsync(usuario.CrmvNumero!, usuario.CrmvEstado!);
         if (vet is not null) return vet;
 
         vet = new VetSolicitante
         {
-            Nome = input.Nome,
-            CrmvNumero = input.CrmvNumero,
-            CrmvEstado = input.CrmvEstado,
+            Nome = usuario.Nome,
+            CrmvNumero = usuario.CrmvNumero!,
+            CrmvEstado = usuario.CrmvEstado!,
+            Email = usuario.Email,
+            Telefone = usuario.Telefone
+        };
+        await vetRepository.AddAsync(vet);
+        return vet;
+    }
+
+    /// <summary>Laboratório logado: busca ou cria o vet a partir dos dados informados.</summary>
+    private async Task<VetSolicitante> ResolverVetDoFormularioAsync(VetSolicitanteInput? input)
+    {
+        if (input is null)
+            throw new RegraNegocioException("Dados do veterinário solicitante são obrigatórios.");
+
+        var nome = Validacao.Obrigatorio(input.Nome, "o nome do veterinário solicitante");
+        if (!CrmvValidacao.FormatoValido(input.CrmvNumero, input.CrmvEstado))
+            throw new RegraNegocioException("CRMV do veterinário solicitante inválido. Verifique o número e a UF.");
+
+        var crmvNumero = input.CrmvNumero.Trim();
+        var crmvEstado = input.CrmvEstado.Trim().ToUpperInvariant();
+
+        var vet = await vetRepository.GetByCrmvAsync(crmvNumero, crmvEstado);
+        if (vet is not null) return vet;
+
+        vet = new VetSolicitante
+        {
+            Nome = nome,
+            CrmvNumero = crmvNumero,
+            CrmvEstado = crmvEstado,
             Email = input.Email,
             Telefone = input.Telefone
         };
@@ -143,13 +189,16 @@ public class SolicitacaoService(
 
     private async Task<Tutor> BuscarOuCriarTutorAsync(TutorInput input)
     {
-        var tutor = await tutorRepository.GetByTelefoneAsync(input.Telefone);
+        var nome = Validacao.Obrigatorio(input.Nome, "o nome do tutor");
+        var telefone = Validacao.Obrigatorio(input.Telefone, "o telefone do tutor");
+
+        var tutor = await tutorRepository.GetByTelefoneAsync(telefone);
         if (tutor is not null) return tutor;
 
         tutor = new Tutor
         {
-            Nome = input.Nome,
-            Telefone = input.Telefone,
+            Nome = nome,
+            Telefone = telefone,
             Email = input.Email
         };
         await tutorRepository.AddAsync(tutor);
@@ -158,13 +207,16 @@ public class SolicitacaoService(
 
     private async Task<Paciente> BuscarOuCriarPacienteAsync(PacienteInput input, Tutor tutor)
     {
-        var paciente = await pacienteRepository.GetByNomeETutorAsync(input.Nome, tutor.Id);
+        var nome = Validacao.Obrigatorio(input.Nome, "o nome do paciente");
+        var especie = Validacao.Obrigatorio(input.Especie, "a espécie do paciente");
+
+        var paciente = await pacienteRepository.GetByNomeETutorAsync(nome, tutor.Id);
         if (paciente is not null) return paciente;
 
         paciente = new Paciente
         {
-            Nome = input.Nome,
-            Especie = input.Especie,
+            Nome = nome,
+            Especie = especie,
             Raca = input.Raca,
             Sexo = input.Sexo,
             IdadeAnos = input.IdadeAnos,
@@ -178,17 +230,9 @@ public class SolicitacaoService(
 
     private async Task<string> GerarCodigoUnicoAsync()
     {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        var random = new Random();
         string codigo;
-
-        do
-        {
-            codigo = new string(Enumerable.Repeat(chars, 8)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+        do codigo = GeradorCodigo.GerarCodigo(8);
         while (await solicitacaoRepository.CodigoPublicoExisteAsync(codigo));
-
         return codigo;
     }
 
@@ -197,16 +241,19 @@ public class SolicitacaoService(
             s.TipoExame?.Nome ?? string.Empty,
             s.Paciente?.Nome ?? string.Empty,
             s.VetSolicitante?.Nome ?? string.Empty,
+            s.Laboratorio?.Nome ?? string.Empty,
             s.CriadoEm, s.DataEstimadaConclusao);
 
-    private static SolicitacaoDto ToDto(Solicitacao s, string tipoNome, string pacienteNome, string vetNome) =>
-        new(s.Id, s.CodigoPublico, s.Status, tipoNome, pacienteNome, vetNome,
+    private static SolicitacaoDto ToDto(
+        Solicitacao s, string tipoNome, string pacienteNome, string vetNome, string laboratorioNome) =>
+        new(s.Id, s.CodigoPublico, s.Status, tipoNome, pacienteNome, vetNome, laboratorioNome,
             s.CriadoEm, s.DataEstimadaConclusao);
 
     private static SolicitacaoDetalhadaDto ToDetalhadoDto(Solicitacao s) =>
         new(s.Id, s.CodigoPublico, s.Status, s.MetodoEntrada,
             s.DescricaoClinica, s.ObservacoesInternas, s.ArquivoEntradaUrl,
             s.CriadoEm, s.DataEstimadaConclusao, s.DataConclusao,
+            s.Laboratorio?.Nome ?? string.Empty,
             new TipoExameResumoDto(s.TipoExame!.Id, s.TipoExame.Nome, s.TipoExame.PrazoEstimadoDias),
             new PacienteResumoDto(s.Paciente!.Id, s.Paciente.Nome, s.Paciente.Especie,
                 s.Paciente.Raca, s.Paciente.Sexo, s.Paciente.IdadeAnos,

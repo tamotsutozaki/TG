@@ -6,14 +6,16 @@ namespace LabPat.Api.Controllers;
 
 [ApiController]
 [Route("api/tipos-exame")]
-[Authorize]
+[Authorize(Roles = "Patologista,Veterinario")]
 public class TiposExameController(ITipoExameService tipoExameService) : ControllerBase
 {
+    // Veterinário informa o laboratório (precisa ter vínculo aprovado)
     [HttpGet]
-    public async Task<IActionResult> GetAll() =>
-        Ok(await tipoExameService.GetAllAsync());
+    public async Task<IActionResult> GetAll([FromQuery] int? laboratorioId) =>
+        Ok(await tipoExameService.GetAllAsync(laboratorioId));
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> GetById(int id)
     {
         var tipo = await tipoExameService.GetByIdAsync(id);

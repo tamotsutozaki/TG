@@ -15,10 +15,8 @@ public class AuthController(IAuthService authService) : ControllerBase
         return result.Status switch
         {
             LoginStatus.Sucesso => Ok(result.Auth),
-            LoginStatus.ContaPendente => StatusCode(403,
-                new { message = "Seu cadastro está em análise pelo laboratório." }),
-            LoginStatus.ContaRecusada => StatusCode(403,
-                new { message = "Seu cadastro não foi aprovado. Entre em contato com o laboratório." }),
+            LoginStatus.ContaDesativada => StatusCode(403,
+                new { message = "Esta conta está desativada. Entre em contato com o administrador do sistema." }),
             _ => Unauthorized(new { message = "E-mail ou senha inválidos." })
         };
     }
@@ -26,19 +24,22 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("registrar")]
     public async Task<IActionResult> Registrar([FromBody] RegistrarVetInput input)
     {
-        var result = await authService.RegistrarVetAsync(input);
-
-        return result.Status switch
+        await authService.RegistrarVetAsync(input);
+        return Ok(new
         {
-            RegistroStatus.Sucesso => Ok(new
-            {
-                message = "Cadastro enviado. Seu acesso será liberado após aprovação do laboratório."
-            }),
-            RegistroStatus.EmailJaCadastrado => Conflict(
-                new { message = "Já existe um cadastro com este e-mail." }),
-            RegistroStatus.CrmvInvalido => BadRequest(
-                new { message = "CRMV inválido. Verifique o número e a UF." }),
-            _ => BadRequest(new { message = "Não foi possível concluir o cadastro." })
-        };
+            message = "Conta criada! Entre no sistema e peça vínculo com os laboratórios com que você trabalha."
+        });
+    }
+
+    // POST (e não GET com o token na URL) para o token não ficar registrado em logs de acesso
+    [HttpPost("convites/validar")]
+    public async Task<IActionResult> ValidarConvite([FromBody] ValidarConviteInput input) =>
+        Ok(await authService.ValidarConviteAsync(input.Token));
+
+    [HttpPost("registrar-laboratorio")]
+    public async Task<IActionResult> RegistrarLaboratorio([FromBody] RegistrarLaboratorioInput input)
+    {
+        await authService.RegistrarLaboratorioAsync(input);
+        return Ok(new { message = "Laboratório cadastrado! Você já pode entrar com o e-mail e a senha informados." });
     }
 }

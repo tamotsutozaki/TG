@@ -1,5 +1,6 @@
 using LabPat.Application.Common;
 using LabPat.Domain.Entities;
+using LabPat.Infrastructure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -23,8 +24,8 @@ public class JwtTokenGenerator(IConfiguration configuration) : ITokenGenerator
             new(ClaimTypes.Role, usuario.Papel.ToString())
         };
 
-        if (usuario.VetSolicitanteId is not null)
-            claims.Add(new Claim("vetSolicitanteId", usuario.VetSolicitanteId.Value.ToString()));
+        if (usuario.LaboratorioId is not null)
+            claims.Add(new Claim(CurrentUser.LaboratorioClaim, usuario.LaboratorioId.Value.ToString()));
 
         var expiration = double.Parse(configuration["Jwt:ExpirationHours"] ?? "8");
 

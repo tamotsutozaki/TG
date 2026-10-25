@@ -6,22 +6,15 @@ namespace LabPat.Api.Controllers;
 
 [ApiController]
 [Route("api/laudos")]
-[Authorize]
+[Authorize(Roles = "Patologista,Veterinario")]
 public class LaudosController(ILaudoService laudoService) : ControllerBase
 {
     [HttpPost]
     [Authorize(Roles = "Patologista")]
     public async Task<IActionResult> Create([FromBody] CreateLaudoInput input)
     {
-        try
-        {
-            var created = await laudoService.CreateAsync(input);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var created = await laudoService.CreateAsync(input);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpGet("{id:int}")]

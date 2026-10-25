@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LabPat.Api.Controllers;
 
+// Pedidos de vínculo e veterinários vinculados ao laboratório logado
 [ApiController]
 [Route("api/veterinarios")]
 [Authorize(Roles = "Patologista")]
@@ -16,14 +17,21 @@ public class VeterinariosController(IVeterinarioService veterinarioService) : Co
     [HttpPut("{id:int}/aprovar")]
     public async Task<IActionResult> Aprovar(int id)
     {
-        var ok = await veterinarioService.AprovarAsync(id);
-        return ok ? NoContent() : NotFound();
+        var vinculo = await veterinarioService.AprovarAsync(id);
+        return vinculo is null ? NotFound() : Ok(vinculo);
     }
 
     [HttpPut("{id:int}/recusar")]
     public async Task<IActionResult> Recusar(int id)
     {
-        var ok = await veterinarioService.RecusarAsync(id);
-        return ok ? NoContent() : NotFound();
+        var vinculo = await veterinarioService.RecusarAsync(id);
+        return vinculo is null ? NotFound() : Ok(vinculo);
+    }
+
+    [HttpPut("{id:int}/desfazer")]
+    public async Task<IActionResult> Desfazer(int id)
+    {
+        var vinculo = await veterinarioService.DesfazerAsync(id);
+        return vinculo is null ? NotFound() : Ok(vinculo);
     }
 }

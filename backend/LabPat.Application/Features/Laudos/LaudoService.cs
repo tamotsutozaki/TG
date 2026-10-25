@@ -1,4 +1,5 @@
 using LabPat.Application.Common;
+using LabPat.Application.Features.Vinculos;
 using LabPat.Domain.Entities;
 using LabPat.Domain.Enums;
 using LabPat.Domain.Interfaces;
@@ -11,6 +12,7 @@ public class LaudoService(
     ITipoExameRepository tipoExameRepository,
     IInsumoRepository insumoRepository,
     IUsuarioRepository usuarioRepository,
+    IAcessoVeterinarioService acessoVeterinario,
     ICurrentUser currentUser,
     IPdfGenerator pdfGenerator,
     IUnitOfWork unitOfWork) : ILaudoService
@@ -18,10 +20,12 @@ public class LaudoService(
     public async Task<LaudoDto> CreateAsync(CreateLaudoInput input)
     {
         var solicitacao = await solicitacaoRepository.GetByIdComDetalhesAsync(input.SolicitacaoId)
-            ?? throw new InvalidOperationException("Solicitação não encontrada.");
+            ?? throw new RegraNegocioException("Solicitação não encontrada.");
 
-        if (solicitacao.Laudo is not null)
-            throw new InvalidOperationException("Já existe um laudo para esta solicitação.");
+        if (solicitacao.Laudo is not null || await laudoRepository.GetBySolicitacaoIdAsync(solicitacao.Id) is not null)
+            throw new RegraNegocioException("Já existe um laudo para esta solicitação.");
+
+        Validacao.Obrigatorio(input.Conteudo, "o conteúdo do laudo");
 
         var laudo = new Laudo
         {
@@ -55,19 +59,26 @@ public class LaudoService(
 
     public async Task<LaudoDto?> GetByIdAsync(int id)
     {
-        var laudo = await laudoRepository.GetByIdComDetalhesAsync(id);
+        var laudo = await ObterLaudoAcessivelAsync(id);
         return laudo is null ? null : ToDto(laudo);
     }
 
     public async Task<LaudoDto?> GetBySolicitacaoAsync(int solicitacaoId)
     {
-        var laudo = await laudoRepository.GetBySolicitacaoIdAsync(solicitacaoId);
+        if (!EhVeterinario)
+        {
+            var doLaboratorio = await laudoRepository.GetBySolicitacaoIdAsync(solicitacaoId);
+            return doLaboratorio is null ? null : ToDto(doLaboratorio);
+        }
+
+        if (!await VeterinarioPodeVerAsync(solicitacaoId)) return null;
+        var laudo = await laudoRepository.GetBySolicitacaoIdAsync(solicitacaoId, ignorarFiltroLaboratorio: true);
         return laudo is null ? null : ToDto(laudo);
     }
 
     public async Task<byte[]?> GerarPdfAsync(int id)
     {
-        var laudo = await laudoRepository.GetByIdComDetalhesAsync(id);
+        var laudo = await ObterLaudoAcessivelAsync(id);
         if (laudo is null) return null;
 
         var s = laudo.Solicitacao!;
@@ -98,6 +109,26 @@ public class LaudoService(
             PatologistaNome: laudo.EmitidoPor?.Nome ?? string.Empty);
 
         return pdfGenerator.GerarLaudo(data);
+    }
+
+    private bool EhVeterinario => currentUser.Papel == PapelUsuario.Veterinario.ToString();
+
+    /// <summary>
+    /// Laboratório: consulta filtrada. Veterinário: só se puder ver a solicitação do laudo.
+    /// </summary>
+    private async Task<Laudo?> ObterLaudoAcessivelAsync(int id)
+    {
+        if (!EhVeterinario)
+            return await laudoRepository.GetByIdComDetalhesAsync(id);
+
+        var laudo = await laudoRepository.GetByIdComDetalhesAsync(id, ignorarFiltroLaboratorio: true);
+        return laudo is not null && await VeterinarioPodeVerAsync(laudo.SolicitacaoId) ? laudo : null;
+    }
+
+    private async Task<bool> VeterinarioPodeVerAsync(int solicitacaoId)
+    {
+        var acesso = await acessoVeterinario.ObterAsync();
+        return await solicitacaoRepository.GetByIdVisivelAoVeterinarioAsync(solicitacaoId, acesso) is not null;
     }
 
     private async Task DescontarEstoqueAsync(int tipoExameId)

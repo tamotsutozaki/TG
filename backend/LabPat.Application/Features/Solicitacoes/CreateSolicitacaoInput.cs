@@ -9,4 +9,6 @@ public record CreateSolicitacaoInput(
     int TipoExameId,
     string? DescricaoClinica,
     MetodoEntrada MetodoEntrada,
-    string? ArquivoEntradaUrl);
+    string? ArquivoEntradaUrl,
+    // Obrigatório para veterinário (laboratório de destino); ignorado para o laboratório logado
+    int? LaboratorioId = null);

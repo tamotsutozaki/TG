@@ -8,23 +8,22 @@ namespace LabPat.Infrastructure.Repositories;
 public class LaudoRepository(AppDbContext context)
     : RepositoryBase<Laudo>(context), ILaudoRepository
 {
-    public async Task<Laudo?> GetByIdComDetalhesAsync(int id) =>
-        await Context.Laudos
-            .Include(l => l.Solicitacao)
-                .ThenInclude(s => s!.TipoExame)
-            .Include(l => l.Solicitacao)
-                .ThenInclude(s => s!.Paciente)
-                    .ThenInclude(p => p!.Tutor)
-            .Include(l => l.Solicitacao)
-                .ThenInclude(s => s!.VetSolicitante)
-            .Include(l => l.EmitidoPor)
+    public async Task<Laudo?> GetByIdComDetalhesAsync(int id, bool ignorarFiltroLaboratorio = false) =>
+        await ComDetalhes(ignorarFiltroLaboratorio)
             .FirstOrDefaultAsync(l => l.Id == id);
 
-    public async Task<Laudo?> GetBySolicitacaoIdAsync(int solicitacaoId) =>
-        await Context.Laudos
+    public async Task<Laudo?> GetBySolicitacaoIdAsync(int solicitacaoId, bool ignorarFiltroLaboratorio = false) =>
+        await ComDetalhes(ignorarFiltroLaboratorio)
+            .FirstOrDefaultAsync(l => l.SolicitacaoId == solicitacaoId);
+
+    private IQueryable<Laudo> ComDetalhes(bool ignorarFiltroLaboratorio)
+    {
+        var laudos = ignorarFiltroLaboratorio ? Context.Laudos.IgnoreQueryFilters() : Context.Laudos;
+        return laudos
             .Include(l => l.Solicitacao).ThenInclude(s => s!.TipoExame)
             .Include(l => l.Solicitacao).ThenInclude(s => s!.Paciente).ThenInclude(p => p!.Tutor)
             .Include(l => l.Solicitacao).ThenInclude(s => s!.VetSolicitante)
-            .Include(l => l.EmitidoPor)
-            .FirstOrDefaultAsync(l => l.SolicitacaoId == solicitacaoId);
+            .Include(l => l.Solicitacao).ThenInclude(s => s!.Laboratorio)
+            .Include(l => l.EmitidoPor);
+    }
 }

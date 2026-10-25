@@ -1,14 +1,28 @@
+using LabPat.Application.Common;
+using LabPat.Application.Features.Vinculos;
 using LabPat.Domain.Entities;
+using LabPat.Domain.Enums;
 using LabPat.Domain.Interfaces;
 
 namespace LabPat.Application.Features.TiposExame;
 
 public class TipoExameService(
     ITipoExameRepository tipoExameRepository,
+    IInsumoRepository insumoRepository,
+    IAcessoVeterinarioService acessoVeterinario,
+    ICurrentUser currentUser,
     IUnitOfWork unitOfWork) : ITipoExameService
 {
-    public async Task<IEnumerable<TipoExameDto>> GetAllAsync()
+    public async Task<IEnumerable<TipoExameDto>> GetAllAsync(int? laboratorioId = null)
     {
+        // Veterinário consulta os exames oferecidos por um laboratório com vínculo aprovado
+        if (currentUser.Papel == PapelUsuario.Veterinario.ToString())
+        {
+            if (laboratorioId is not int id)
+                throw new RegraNegocioException("Informe o laboratório.");
+            await acessoVeterinario.EntrarNoLaboratorioAsync(id);
+        }
+
         var tipos = await tipoExameRepository.GetAllAtivosAsync();
         return tipos.Select(t => new TipoExameDto(t.Id, t.Nome, t.Descricao, t.PrazoEstimadoDias, t.Ativo));
     }
@@ -97,6 +111,14 @@ public class TipoExameService(
     {
         var tipo = await tipoExameRepository.GetByIdComDetalhesAsync(tipoExameId);
         if (tipo is null) return null;
+
+        // Consulta filtrada: insumo de outro laboratório não é encontrado
+        var insumoDoLaboratorio = await insumoRepository.GetByIdAsync(input.InsumoId);
+        if (insumoDoLaboratorio is null || !insumoDoLaboratorio.Ativo)
+            throw new RegraNegocioException("Insumo inválido.");
+
+        if (input.QuantidadeConsumida <= 0)
+            throw new RegraNegocioException("A quantidade consumida deve ser maior que zero.");
 
         var vinculo = tipo.ExameInsumos.FirstOrDefault(ei => ei.InsumoId == input.InsumoId);
 

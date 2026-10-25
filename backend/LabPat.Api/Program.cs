@@ -1,10 +1,13 @@
+using LabPat.Api.Middleware;
 using LabPat.Application.Common;
+using LabPat.Application.Features.Admin;
 using LabPat.Application.Features.Auth;
 using LabPat.Application.Features.Insumos;
 using LabPat.Application.Features.Laudos;
 using LabPat.Application.Features.Solicitacoes;
 using LabPat.Application.Features.TiposExame;
 using LabPat.Application.Features.Veterinarios;
+using LabPat.Application.Features.Vinculos;
 using LabPat.Domain.Interfaces;
 using LabPat.Infrastructure.Data;
 using LabPat.Infrastructure.ExternalServices;
@@ -15,6 +18,7 @@ using LabPat.Infrastructure.Seeding;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -58,6 +62,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
         };
+
+        // Conta ou laboratório desativados perdem o acesso na hora, mesmo com token ainda válido
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var id = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var usuarios = context.HttpContext.RequestServices.GetRequiredService<IUsuarioRepository>();
+
+                if (!int.TryParse(id, out var usuarioId) || !await usuarios.ContaAtivaAsync(usuarioId))
+                    context.Fail("Conta desativada.");
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -75,6 +92,9 @@ builder.Services.AddScoped<ILaudoRepository, LaudoRepository>();
 builder.Services.AddScoped<IVetSolicitanteRepository, VetSolicitanteRepository>();
 builder.Services.AddScoped<ITutorRepository, TutorRepository>();
 builder.Services.AddScoped<IPacienteRepository, PacienteRepository>();
+builder.Services.AddScoped<ILaboratorioRepository, LaboratorioRepository>();
+builder.Services.AddScoped<IConviteLaboratorioRepository, ConviteLaboratorioRepository>();
+builder.Services.AddScoped<IVinculoVeterinarioRepository, VinculoVeterinarioRepository>();
 
 // Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -83,6 +103,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddSingleton<IPdfGenerator, QuestPdfGenerator>();
 
 // Serviços de aplicação
@@ -92,20 +113,31 @@ builder.Services.AddScoped<IInsumoService, InsumoService>();
 builder.Services.AddScoped<ISolicitacaoService, SolicitacaoService>();
 builder.Services.AddScoped<ILaudoService, LaudoService>();
 builder.Services.AddScoped<IVeterinarioService, VeterinarioService>();
+builder.Services.AddScoped<IVinculoService, VinculoService>();
+builder.Services.AddScoped<IAcessoVeterinarioService, AcessoVeterinarioService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+
+// Exceções de regra de negócio -> 400/403/409
+builder.Services.AddExceptionHandler<ExcecaoHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// Seed de dados em desenvolvimento
-if (app.Environment.IsDevelopment())
+// Migrations automáticas em desenvolvimento; administrador criado a partir da configuração
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await context.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(context);
+    if (app.Environment.IsDevelopment())
+        await context.Database.MigrateAsync();
 
-    app.MapOpenApi();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await DbSeeder.SeedAsync(context, app.Configuration, logger);
 }
 
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi();
+
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseCors("Angular");
 app.UseAuthentication();

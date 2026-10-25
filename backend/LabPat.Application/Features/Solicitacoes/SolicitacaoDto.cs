@@ -9,6 +9,7 @@ public record SolicitacaoDto(
     string TipoExameNome,
     string PacienteNome,
     string VetSolicitanteNome,
+    string LaboratorioNome,
     DateTime DataCriacao,
     DateTime? DataEstimadaConclusao);
 
@@ -23,6 +24,7 @@ public record SolicitacaoDetalhadaDto(
     DateTime DataCriacao,
     DateTime? DataEstimadaConclusao,
     DateTime? DataConclusao,
+    string LaboratorioNome,
     TipoExameResumoDto TipoExame,
     PacienteResumoDto Paciente,
     TutorResumoDto Tutor,
@@ -49,6 +51,7 @@ public record HistoricoStatusDto(
 
 public record ConsultaPublicaDto(
     string CodigoPublico,
+    string LaboratorioNome,
     string Status,
     string TipoExame,
     string PacienteNome,
