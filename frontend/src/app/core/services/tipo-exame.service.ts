@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { TipoExameDto, TipoExameDetalhadoDto, CreateTipoExameInput } from '../models/tipo-exame.model';
 
@@ -9,8 +9,10 @@ export class TipoExameService {
 
   constructor(private http: HttpClient) {}
 
-  getAll() {
-    return this.http.get<TipoExameDto[]>(this.url);
+  // laboratorioId: usado pelo veterinário (laboratório com vínculo aprovado)
+  getAll(laboratorioId?: number) {
+    const params = laboratorioId ? new HttpParams().set('laboratorioId', laboratorioId) : undefined;
+    return this.http.get<TipoExameDto[]>(this.url, { params });
   }
 
   getById(id: number) {

@@ -46,7 +46,7 @@
 
       <p class="registro-hint">
         É veterinário e ainda não tem acesso?
-        <a routerLink="/registro">Criar conta</a>
+        <a routerLink="/registro" [queryParams]="returnUrl ? { returnUrl } : {}">Criar conta</a>
       </p>
     </mat-card-content>
   </mat-card>

@@ -69,6 +69,10 @@ import { AuthService } from '../../core/services/auth.service';
               Ir para o painel
             </button>
           }
+          <p class="nota-laboratorio">
+            Laboratórios entram no sistema por convite.
+            Já tem acesso? <a (click)="irParaLogin()">Entrar</a>
+          </p>
         </footer>
       </div>
     </div>
@@ -96,6 +100,8 @@ import { AuthService } from '../../core/services/auth.service';
     .acesso-vet-titulo { font-weight: 600; font-size: 14px; }
     .acesso-vet-sub { font-size: 12px; color: #666; }
     .acesso-interno { text-align: center; margin-top: 16px; }
+    .nota-laboratorio { font-size: 12px; color: #888; margin: 8px 0 0; }
+    .nota-laboratorio a { color: #3f51b5; cursor: pointer; text-decoration: underline; }
   `]
 })
 export class HomeComponent {
@@ -118,6 +124,6 @@ export class HomeComponent {
   }
 
   irParaPainel() {
-    this.router.navigate(['/dashboard']);
+    this.router.navigateByUrl(this.auth.rotaInicial());
   }
 }

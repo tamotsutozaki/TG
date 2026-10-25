@@ -1,4 +1,4 @@
-export type PapelUsuario = 'Patologista' | 'Veterinario';
+export type PapelUsuario = 'Patologista' | 'Veterinario' | 'Administrador';
 
 export interface LoginInput {
   email: string;
@@ -19,4 +19,24 @@ export interface RegistrarVetInput {
   crmvNumero: string;
   crmvEstado: string;
   telefone?: string;
+}
+
+export interface ConviteInfo {
+  descricao: string | null;
+  expiraEm: string;
+}
+
+export interface RegistrarLaboratorioInput {
+  token: string;
+  nome: string;
+  cnpj: string;
+  endereco: string;
+  cidade: string;
+  uf: string;
+  telefone: string;
+  email: string;
+  senha: string;
+  responsavelTecnicoNome: string;
+  responsavelTecnicoCrmvNumero: string;
+  responsavelTecnicoCrmvEstado: string;
 }

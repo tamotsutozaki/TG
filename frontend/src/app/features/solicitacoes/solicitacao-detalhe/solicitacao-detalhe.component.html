@@ -64,7 +64,7 @@
         @if (solicitacao.paciente.raca) {
           <div class="info-item"><span class="label">Raça</span><span>{{ solicitacao.paciente.raca }}</span></div>
         }
-        <div class="info-item"><span class="label">Sexo</span><span>{{ solicitacao.paciente.sexo }}</span></div>
+        <div class="info-item"><span class="label">Sexo</span><span>{{ sexoLabel[solicitacao.paciente.sexo] }}</span></div>
         @if (solicitacao.paciente.pesoKg) {
           <div class="info-item"><span class="label">Peso</span><span>{{ solicitacao.paciente.pesoKg }} kg</span></div>
         }
@@ -77,8 +77,9 @@
     <mat-card class="secao">
       <mat-card-header><mat-card-title>Exame e Solicitante</mat-card-title></mat-card-header>
       <mat-card-content>
+        <div class="info-item"><span class="label">Laboratório</span><span>{{ solicitacao.laboratorioNome }}</span></div>
         <div class="info-item"><span class="label">Tipo</span><span>{{ solicitacao.tipoExame.nome }}</span></div>
-        <div class="info-item"><span class="label">Método</span><span>{{ solicitacao.metodoEntrada }}</span></div>
+        <div class="info-item"><span class="label">Método</span><span>{{ metodoLabel[solicitacao.metodoEntrada] }}</span></div>
         @if (solicitacao.dataEstimadaConclusao) {
           <div class="info-item">
             <span class="label">Previsão</span>
@@ -95,7 +96,7 @@
         <div class="info-item"><span class="label">Veterinário</span><span>{{ solicitacao.vetSolicitante.nome }}</span></div>
         <div class="info-item">
           <span class="label">CRMV</span>
-          <span>{{ solicitacao.vetSolicitante.crmvEstado }}-{{ solicitacao.vetSolicitante.crmvNumero }}</span>
+          <span>CRMV-{{ solicitacao.vetSolicitante.crmvEstado }} {{ solicitacao.vetSolicitante.crmvNumero }}</span>
         </div>
       </mat-card-content>
     </mat-card>
@@ -110,7 +111,10 @@
       @if (laudo) {
         <div class="laudo-emitido">
           <div class="info-item"><span class="label">Emitido em</span><span>{{ laudo.emitidoEm | date:'dd/MM/yyyy HH:mm' }}</span></div>
-          <div class="info-item"><span class="label">Patologista</span><span>{{ laudo.patologistaNome }}</span></div>
+          <div class="info-item">
+            <span class="label">Responsável técnico</span>
+            <span>{{ laudo.responsavelTecnicoNome }} · {{ laudo.responsavelTecnicoCrmv }}</span>
+          </div>
           <div class="laudo-conteudo">{{ laudo.conteudo }}</div>
           <button mat-raised-button color="primary" (click)="downloadPdf()" [disabled]="baixandoPdf" class="mt-2">
             @if (baixandoPdf) { <mat-spinner diameter="18"></mat-spinner> Baixando... }

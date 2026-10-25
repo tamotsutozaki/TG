@@ -51,6 +51,7 @@ table { border-radius: 8px; overflow: hidden; }
 
   // Esconde colunas secundárias no celular (veterinário e data)
   .mat-column-vet,
+  .mat-column-laboratorio,
   .mat-column-data {
     display: none;
   }

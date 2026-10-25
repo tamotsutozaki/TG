@@ -1,0 +1,92 @@
+<div class="page-header">
+  <div>
+    <h2>Convites de laboratório</h2>
+    <p class="page-sub">Laboratórios só se cadastram com um convite gerado aqui.</p>
+  </div>
+</div>
+
+<!-- Gerar convite -->
+<mat-card class="secao">
+  <mat-card-header>
+    <mat-card-title>Gerar convite</mat-card-title>
+    <mat-card-subtitle>O link é de uso único e vale pelo prazo escolhido.</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="gerar()" class="form-gerar">
+      <mat-form-field appearance="outline" class="campo-descricao">
+        <mat-label>Para quem é? (opcional)</mat-label>
+        <input matInput formControlName="descricao" placeholder="Ex.: Laboratório da Dra. Ana" maxlength="120">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="campo-validade">
+        <mat-label>Validade</mat-label>
+        <mat-select formControlName="validadeDias">
+          @for (d of validades; track d) {
+            <mat-option [value]="d">{{ d }} {{ d === 1 ? 'dia' : 'dias' }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="gerando">
+        @if (gerando) { <mat-spinner diameter="18"></mat-spinner> }
+        @else { Gerar convite }
+      </button>
+    </form>
+
+    @if (criado) {
+      <div class="convite-criado">
+        <p class="aviso">
+          <mat-icon>warning_amber</mat-icon>
+          Copie o link agora: por segurança, ele não será exibido de novo.
+        </p>
+        <div class="link-box">
+          <code>{{ linkCriado }}</code>
+          <button mat-flat-button color="primary" type="button" (click)="copiar()">
+            <mat-icon>content_copy</mat-icon> Copiar
+          </button>
+        </div>
+        <p class="validade">Válido até {{ criado.expiraEm | date:'dd/MM/yyyy HH:mm' }}</p>
+        <button mat-button type="button" (click)="criado = null">Fechar</button>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
+
+<!-- Convites gerados -->
+<mat-card class="secao">
+  <mat-card-header><mat-card-title>Convites gerados</mat-card-title></mat-card-header>
+  <mat-card-content>
+    @if (loading) {
+      <div class="loading-center"><mat-spinner diameter="40"></mat-spinner></div>
+    } @else if (convites.length === 0) {
+      <div class="empty-state">
+        <mat-icon>mail_outline</mat-icon>
+        <p>Nenhum convite gerado ainda.</p>
+      </div>
+    } @else {
+      @for (c of convites; track c.id) {
+        <div class="item">
+          <div class="item-info">
+            <span class="item-titulo">{{ c.descricao || 'Convite sem descrição' }}</span>
+            <span class="item-detalhe">
+              Gerado em {{ c.criadoEm | date:'dd/MM/yyyy HH:mm' }}
+              @if (c.status === 'Ativo') { · expira em {{ c.expiraEm | date:'dd/MM/yyyy HH:mm' }} }
+            </span>
+            @if (c.laboratorioNome) {
+              <span class="item-detalhe">
+                <mat-icon class="mini">business</mat-icon> Usado por {{ c.laboratorioNome }}
+                em {{ c.usadoEm | date:'dd/MM/yyyy' }}
+              </span>
+            }
+          </div>
+          <div class="item-acoes">
+            <span class="chip {{ c.status }}">{{ c.status }}</span>
+            @if (c.status === 'Ativo') {
+              <button mat-stroked-button color="warn" (click)="revogar(c)" [disabled]="revogandoId === c.id">
+                Revogar
+              </button>
+            }
+          </div>
+        </div>
+      }
+    }
+  </mat-card-content>
+</mat-card>

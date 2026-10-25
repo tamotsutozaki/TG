@@ -9,7 +9,8 @@ export interface LaudoDto {
   tipoExame: string;
   pacienteNome: string;
   conteudo: string;
-  patologistaNome: string;
+  responsavelTecnicoNome: string;
+  responsavelTecnicoCrmv: string;
   emitidoEm: string;
 }
 

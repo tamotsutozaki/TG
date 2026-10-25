@@ -1,0 +1,81 @@
+<div class="page-header">
+  <div>
+    <h2>Meus laboratórios</h2>
+    <p class="page-sub">Você envia solicitações aos laboratórios que aprovaram seu vínculo.</p>
+  </div>
+</div>
+
+<!-- Vínculos do veterinário -->
+<mat-card class="secao">
+  <mat-card-header><mat-card-title>Vínculos</mat-card-title></mat-card-header>
+  <mat-card-content>
+    @if (carregandoVinculos) {
+      <div class="loading-center"><mat-spinner diameter="36"></mat-spinner></div>
+    } @else if (vinculos.length === 0) {
+      <div class="empty-state">
+        <mat-icon>handshake</mat-icon>
+        <p>Você ainda não tem vínculo com nenhum laboratório. Encontre um abaixo e peça vínculo.</p>
+      </div>
+    } @else {
+      @for (v of vinculos; track v.id) {
+        <div class="item">
+          <div class="item-info">
+            <span class="item-titulo">{{ v.laboratorioNome }}</span>
+            <span class="item-detalhe">{{ v.cidade }}/{{ v.uf }} · pedido em {{ v.solicitadoEm | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="item-acoes">
+            <span class="chip {{ v.status }}">{{ label(v.status) }}</span>
+            @if (v.status === 'Aprovado') {
+              <a mat-flat-button color="primary" routerLink="/solicitacoes/nova"
+                 [queryParams]="{ laboratorio: v.laboratorioId }">Nova solicitação</a>
+            } @else if (podePedir(v.status)) {
+              <button mat-stroked-button color="primary" (click)="pedir(v.laboratorioId)"
+                      [disabled]="enviandoId === v.laboratorioId">Pedir de novo</button>
+            }
+          </div>
+        </div>
+      }
+    }
+  </mat-card-content>
+</mat-card>
+
+<!-- Busca de laboratórios -->
+<mat-card class="secao">
+  <mat-card-header>
+    <mat-card-title>Encontrar laboratório</mat-card-title>
+    <mat-card-subtitle>Busque pelo nome ou pela cidade</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <form class="busca" (ngSubmit)="buscar()">
+      <mat-form-field appearance="outline" class="campo-busca">
+        <mat-label>Nome ou cidade</mat-label>
+        <input matInput [(ngModel)]="termo" name="termo">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <button mat-stroked-button color="primary" type="submit">Buscar</button>
+    </form>
+
+    @if (buscando) {
+      <div class="loading-center"><mat-spinner diameter="36"></mat-spinner></div>
+    } @else if (resultados.length === 0) {
+      <p class="sem-resultado">Nenhum laboratório encontrado.</p>
+    } @else {
+      @for (l of resultados; track l.id) {
+        <div class="item">
+          <div class="item-info">
+            <span class="item-titulo">{{ l.nome }}</span>
+            <span class="item-detalhe">{{ l.cidade }}/{{ l.uf }}</span>
+          </div>
+          <div class="item-acoes">
+            @if (l.statusVinculo) { <span class="chip {{ l.statusVinculo }}">{{ label(l.statusVinculo) }}</span> }
+            @if (podePedir(l.statusVinculo)) {
+              <button mat-flat-button color="primary" (click)="pedir(l.id)" [disabled]="enviandoId === l.id">
+                Pedir vínculo
+              </button>
+            }
+          </div>
+        </div>
+      }
+    }
+  </mat-card-content>
+</mat-card>

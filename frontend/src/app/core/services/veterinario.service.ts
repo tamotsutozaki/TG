@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { VeterinarioConta } from '../models/veterinario.model';
+import { VinculoVeterinario } from '../models/veterinario.model';
 
+// Pedidos de vínculo e veterinários vinculados ao laboratório logado
 @Injectable({ providedIn: 'root' })
 export class VeterinarioService {
   private url = `${environment.apiUrl}/veterinarios`;
@@ -10,14 +11,18 @@ export class VeterinarioService {
   constructor(private http: HttpClient) {}
 
   listar() {
-    return this.http.get<VeterinarioConta[]>(this.url);
+    return this.http.get<VinculoVeterinario[]>(this.url);
   }
 
   aprovar(id: number) {
-    return this.http.put(`${this.url}/${id}/aprovar`, {});
+    return this.http.put<VinculoVeterinario>(`${this.url}/${id}/aprovar`, {});
   }
 
   recusar(id: number) {
-    return this.http.put(`${this.url}/${id}/recusar`, {});
+    return this.http.put<VinculoVeterinario>(`${this.url}/${id}/recusar`, {});
+  }
+
+  desfazer(id: number) {
+    return this.http.put<VinculoVeterinario>(`${this.url}/${id}/desfazer`, {});
   }
 }

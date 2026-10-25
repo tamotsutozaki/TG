@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,12 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
-
-const UFS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-];
+import { UFS } from '../../../shared/formatadores';
 
 @Component({
   selector: 'app-registro',
@@ -34,16 +29,17 @@ const UFS = [
 
         @if (enviado) {
           <div class="sucesso">
-            <mat-icon class="sucesso-icon">mark_email_read</mat-icon>
-            <h2>Cadastro enviado!</h2>
-            <p>Seu acesso será liberado após a aprovação do laboratório.
-               Você poderá entrar assim que for aprovado.</p>
-            <a mat-flat-button color="primary" routerLink="/login">Ir para o login</a>
+            <mat-icon class="sucesso-icon">how_to_reg</mat-icon>
+            <h2>Conta criada!</h2>
+            <p>Entre no sistema e peça vínculo aos laboratórios com que você trabalha.
+               Cada laboratório aprova o próprio vínculo.</p>
+            <a mat-flat-button color="primary" routerLink="/login"
+               [queryParams]="returnUrl ? { returnUrl } : {}">Ir para o login</a>
           </div>
         } @else {
           <mat-card-header>
             <mat-card-title>Criar conta de veterinário</mat-card-title>
-            <mat-card-subtitle>Solicite acesso para enviar solicitações de exame</mat-card-subtitle>
+            <mat-card-subtitle>Para enviar solicitações de exame aos laboratórios</mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
@@ -65,7 +61,7 @@ const UFS = [
                 <mat-label>Senha</mat-label>
                 <input matInput type="password" formControlName="senha" />
                 @if (form.get('senha')?.hasError('minlength') && form.get('senha')?.touched) {
-                  <mat-error>Mínimo de 6 caracteres</mat-error>
+                  <mat-error>Mínimo de 8 caracteres</mat-error>
                 }
               </mat-form-field>
 
@@ -98,11 +94,11 @@ const UFS = [
               <button mat-flat-button color="primary" type="submit"
                       [disabled]="form.invalid || enviando">
                 @if (enviando) { <mat-spinner diameter="20"></mat-spinner> }
-                @else { Enviar cadastro }
+                @else { Criar conta }
               </button>
 
               <p class="login-hint">
-                Já tem conta? <a routerLink="/login">Entrar</a>
+                Já tem conta? <a routerLink="/login" [queryParams]="returnUrl ? { returnUrl } : {}">Entrar</a>
               </p>
             </form>
           </mat-card-content>
@@ -138,13 +134,15 @@ export class RegistroComponent {
 
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  private router = inject(Router);
+
+  // Volta para o link de vínculo, se o cadastro começou por ele
+  returnUrl = inject(ActivatedRoute).snapshot.queryParamMap.get('returnUrl');
 
   constructor() {
     this.form = this.fb.group({
       nome: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      senha: ['', [Validators.required, Validators.minLength(6)]],
+      senha: ['', [Validators.required, Validators.minLength(8)]],
       crmvNumero: ['', [Validators.required, Validators.pattern(/^\d{1,6}$/)]],
       crmvEstado: ['', Validators.required],
       telefone: ['']

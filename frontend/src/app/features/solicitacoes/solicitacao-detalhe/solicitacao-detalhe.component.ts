@@ -18,6 +18,7 @@ import { TipoExameService } from '../../../core/services/tipo-exame.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TemplateLaudoDto } from '../../../core/models/tipo-exame.model';
 import { SolicitacaoDetalhadaDto, StatusSolicitacao } from '../../../core/models/solicitacao.model';
+import { METODO_ENTRADA_LABEL, SEXO_LABEL } from '../../../shared/formatadores';
 
 @Component({
   selector: 'app-solicitacao-detalhe',
@@ -60,6 +61,9 @@ export class SolicitacaoDetalheComponent implements OnInit {
   };
 
   proximos: StatusSolicitacao[] = [];
+
+  sexoLabel = SEXO_LABEL;
+  metodoLabel = METODO_ENTRADA_LABEL;
 
   constructor(
     private route: ActivatedRoute,

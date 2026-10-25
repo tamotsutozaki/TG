@@ -14,6 +14,7 @@ export interface SolicitacaoDto {
   tipoExameNome: string;
   pacienteNome: string;
   vetSolicitanteNome: string;
+  laboratorioNome: string;
   dataCriacao: string;
   dataEstimadaConclusao: string | null;
 }
@@ -29,6 +30,7 @@ export interface SolicitacaoDetalhadaDto {
   dataCriacao: string;
   dataEstimadaConclusao: string | null;
   dataConclusao: string | null;
+  laboratorioNome: string;
   tipoExame: { id: number; nome: string; prazoEstimadoDias: number };
   paciente: {
     id: number; nome: string; especie: string; raca: string | null;
@@ -57,6 +59,7 @@ export interface LaudoResumoDto {
 
 export interface ConsultaPublicaDto {
   codigoPublico: string;
+  laboratorioNome: string;
   status: string;
   tipoExame: string;
   pacienteNome: string;

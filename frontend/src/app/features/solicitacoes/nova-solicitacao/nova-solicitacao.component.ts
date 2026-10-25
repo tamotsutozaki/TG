@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,13 +16,15 @@ import { SolicitacaoService } from '../../../core/services/solicitacao.service';
 import { TipoExameService } from '../../../core/services/tipo-exame.service';
 import { GeminiService } from '../../../core/services/gemini.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { VinculoService } from '../../../core/services/vinculo.service';
 import { TipoExameDto } from '../../../core/models/tipo-exame.model';
+import { MeuVinculo } from '../../../core/models/vinculo.model';
 
 @Component({
   selector: 'app-nova-solicitacao',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, FormsModule,
+    CommonModule, ReactiveFormsModule, FormsModule, RouterLink,
     MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     MatButtonToggleModule, MatDividerModule, MatSnackBarModule
@@ -33,6 +35,9 @@ import { TipoExameDto } from '../../../core/models/tipo-exame.model';
 export class NovaSolicitacaoComponent implements OnInit {
   form: FormGroup;
   tiposExame: TipoExameDto[] = [];
+  // Veterinário: laboratórios com vínculo aprovado (destino da solicitação)
+  laboratorios: MeuVinculo[] = [];
+  carregandoLaboratorios = false;
   metodoEntrada: 'Manual' | 'Imagem' | 'PDF' | 'Audio' = 'Manual';
   arquivoSelecionado: File | null = null;
   extraindo = false;
@@ -45,9 +50,12 @@ export class NovaSolicitacaoComponent implements OnInit {
     private tipoExameService: TipoExameService,
     private geminiService: GeminiService,
     private auth: AuthService,
+    private vinculoService: VinculoService,
+    private route: ActivatedRoute,
     private snack: MatSnackBar
   ) {
     this.form = this.fb.group({
+      laboratorioId: [null as number | null],
       tipoExameId: [null, Validators.required],
       descricaoClinica: [''],
       vetSolicitante: this.fb.group({
@@ -79,13 +87,37 @@ export class NovaSolicitacaoComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.tipoExameService.getAll().subscribe(tipos => this.tiposExame = tipos);
+    if (!this.isVet) {
+      this.tipoExameService.getAll().subscribe(tipos => this.tiposExame = tipos);
+      return;
+    }
 
     // Vet logado usa o próprio perfil: a seção do vet some e não é exigida
-    if (this.isVet) {
-      const vet = this.form.get('vetSolicitante');
-      vet?.disable();
-    }
+    this.form.get('vetSolicitante')?.disable();
+    this.form.get('laboratorioId')?.addValidators(Validators.required);
+    this.form.get('laboratorioId')?.valueChanges.subscribe(id => this.carregarTiposDoLaboratorio(id));
+
+    this.carregandoLaboratorios = true;
+    this.vinculoService.meusVinculos().subscribe({
+      next: vinculos => {
+        this.laboratorios = vinculos.filter(v => v.status === 'Aprovado');
+        this.carregandoLaboratorios = false;
+
+        // Vem pré-selecionado pelo link (?laboratorio=) ou quando só há um laboratório
+        const sugerido = Number(this.route.snapshot.queryParamMap.get('laboratorio'));
+        const inicial = this.laboratorios.find(l => l.laboratorioId === sugerido)
+          ?? (this.laboratorios.length === 1 ? this.laboratorios[0] : undefined);
+        if (inicial) this.form.get('laboratorioId')?.setValue(inicial.laboratorioId);
+      },
+      error: () => { this.carregandoLaboratorios = false; }
+    });
+  }
+
+  private carregarTiposDoLaboratorio(laboratorioId: number | null) {
+    this.tiposExame = [];
+    this.form.get('tipoExameId')?.reset();
+    if (!laboratorioId) return;
+    this.tipoExameService.getAll(laboratorioId).subscribe(tipos => this.tiposExame = tipos);
   }
 
   onArquivoChange(event: Event) {
@@ -148,7 +180,10 @@ export class NovaSolicitacaoComponent implements OnInit {
         this.snack.open('Solicitação criada!', 'OK', { duration: 3000 });
         this.router.navigate(['/solicitacoes', s.id]);
       },
-      error: () => { this.salvando = false; this.snack.open('Erro ao criar.', 'OK', { duration: 3000 }); }
+      error: err => {
+        this.salvando = false;
+        this.snack.open(err?.error?.message ?? 'Não foi possível criar a solicitação.', 'OK', { duration: 4000 });
+      }
     });
   }
 

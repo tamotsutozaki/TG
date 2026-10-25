@@ -14,6 +14,9 @@
     <mat-icon>assignment</mat-icon>
     <p>Nenhuma solicitação cadastrada.</p>
     <button mat-raised-button color="primary" (click)="nova()">Criar primeira solicitação</button>
+    @if (auth.isVeterinario()) {
+      <a mat-button color="primary" routerLink="/laboratorios">Ver meus laboratórios</a>
+    }
   </mat-card>
 } @else {
   <mat-card>
@@ -39,6 +42,11 @@
       <ng-container matColumnDef="vet">
         <th mat-header-cell *matHeaderCellDef>Veterinário</th>
         <td mat-cell *matCellDef="let s">{{ s.vetSolicitanteNome }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="laboratorio">
+        <th mat-header-cell *matHeaderCellDef>Laboratório</th>
+        <td mat-cell *matCellDef="let s">{{ s.laboratorioNome }}</td>
       </ng-container>
 
       <ng-container matColumnDef="status">

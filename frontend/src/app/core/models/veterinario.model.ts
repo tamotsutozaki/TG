@@ -1,12 +1,15 @@
-export type StatusConta = 'Pendente' | 'Aprovada' | 'Recusada';
+import { StatusVinculo } from './vinculo.model';
 
-export interface VeterinarioConta {
+// Pedido de vínculo de um veterinário, na visão do laboratório
+export interface VinculoVeterinario {
   id: number;
+  veterinarioId: number;
   nome: string;
   email: string;
   crmvNumero: string;
   crmvEstado: string;
   telefone: string | null;
-  statusConta: StatusConta;
-  criadoEm: string;
+  status: StatusVinculo;
+  solicitadoEm: string;
+  respondidoEm: string | null;
 }

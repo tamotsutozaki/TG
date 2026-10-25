@@ -35,3 +35,70 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background:
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+// Estrutura comum das páginas (os componentes podem sobrescrever)
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h2 { margin: 0; font-size: 22px; font-weight: 500; }
+  .page-sub { margin: 4px 0 0; font-size: 14px; color: #666; }
+}
+
+.loading-center { display: flex; justify-content: center; padding: 48px; }
+.secao { margin-bottom: 16px; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px;
+  gap: 12px;
+  color: #9e9e9e;
+
+  mat-icon { font-size: 48px; width: 48px; height: 48px; }
+  p { font-size: 15px; margin: 0; }
+}
+
+.erro-msg { color: #c62828; font-size: 14px; margin: 4px 0; }
+
+// Chips de status de vínculos, convites e contas
+.chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.Pendente  { background: #fff8e1; color: #f57f17; }
+  &.Aprovado, &.Ativo   { background: #e8f5e9; color: #2e7d32; }
+  &.Recusado, &.Revogado, &.Inativo { background: #ffebee; color: #c62828; }
+  &.Desfeito, &.Expirado { background: #eceff1; color: #546e7a; }
+  &.Usado     { background: #e3f2fd; color: #1565c0; }
+}
+
+// Caixa com link para copiar (convites e link de vínculo)
+.link-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5f5f5;
+  border: 1px dashed #bdbdbd;
+  border-radius: 8px;
+  padding: 8px 8px 8px 12px;
+
+  code {
+    flex: 1;
+    font-family: monospace;
+    font-size: 13px;
+    word-break: break-all;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-header h2 { font-size: 20px; }
+}

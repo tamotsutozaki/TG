@@ -1,16 +1,36 @@
 <div class="page-header">
-  <h2>Veterinários</h2>
+  <div>
+    <h2>Veterinários</h2>
+    <p class="page-sub">Veterinários vinculados podem enviar solicitações de exame ao laboratório.</p>
+  </div>
 </div>
+
+@if (linkVinculo) {
+  <mat-card class="secao">
+    <mat-card-header>
+      <mat-card-title>Convide veterinários</mat-card-title>
+      <mat-card-subtitle>Envie o link: o veterinário cria a conta (se ainda não tiver) e pede vínculo.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="link-box mt-2">
+        <code>{{ linkVinculo }}</code>
+        <button mat-flat-button color="primary" (click)="copiarLink()">
+          <mat-icon>content_copy</mat-icon> Copiar
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}
 
 @if (loading) {
   <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
 } @else {
 
-  <!-- Pendentes de aprovação -->
+  <!-- Pedidos pendentes -->
   <mat-card class="secao">
     <mat-card-header>
-      <mat-card-title>Pedidos de acesso</mat-card-title>
-      <mat-card-subtitle>Cadastros aguardando aprovação</mat-card-subtitle>
+      <mat-card-title>Pedidos de vínculo</mat-card-title>
+      <mat-card-subtitle>Confira o nome e o CRMV antes de aprovar</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
       @if (pendentes.length === 0) {
@@ -20,17 +40,15 @@
           <div class="vet-item pendente">
             <div class="vet-info">
               <span class="vet-nome">{{ v.nome }}</span>
-              <span class="vet-detalhe">CRMV {{ v.crmvEstado }} {{ v.crmvNumero }} · {{ v.email }}</span>
+              <span class="vet-detalhe">{{ formatarCrmv(v.crmvEstado, v.crmvNumero) }} · {{ v.email }}</span>
               @if (v.telefone) { <span class="vet-detalhe">{{ v.telefone }}</span> }
-              <span class="vet-data">Solicitado em {{ v.criadoEm | date:'dd/MM/yyyy HH:mm' }}</span>
+              <span class="vet-data">Pedido em {{ v.solicitadoEm | date:'dd/MM/yyyy HH:mm' }}</span>
             </div>
             <div class="vet-acoes">
-              <button mat-flat-button color="primary" (click)="aprovar(v)"
-                      [disabled]="processandoId === v.id">
+              <button mat-flat-button color="primary" (click)="aprovar(v)" [disabled]="processandoId === v.id">
                 <mat-icon>check</mat-icon> Aprovar
               </button>
-              <button mat-stroked-button color="warn" (click)="recusar(v)"
-                      [disabled]="processandoId === v.id">
+              <button mat-stroked-button color="warn" (click)="recusar(v)" [disabled]="processandoId === v.id">
                 <mat-icon>close</mat-icon> Recusar
               </button>
             </div>
@@ -40,25 +58,46 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- Já processados -->
-  @if (demais.length > 0) {
-    <mat-card class="secao">
-      <mat-card-header>
-        <mat-card-title>Veterinários cadastrados</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        @for (v of demais; track v.id) {
+  <!-- Vinculados -->
+  <mat-card class="secao">
+    <mat-card-header><mat-card-title>Veterinários vinculados</mat-card-title></mat-card-header>
+    <mat-card-content>
+      @if (vinculados.length === 0) {
+        <p class="vazio-texto">Nenhum veterinário vinculado ainda. Envie o link acima.</p>
+      } @else {
+        @for (v of vinculados; track v.id) {
           <div class="vet-item">
             <div class="vet-info">
               <span class="vet-nome">{{ v.nome }}</span>
-              <span class="vet-detalhe">CRMV {{ v.crmvEstado }} {{ v.crmvNumero }} · {{ v.email }}</span>
+              <span class="vet-detalhe">{{ formatarCrmv(v.crmvEstado, v.crmvNumero) }} · {{ v.email }}</span>
+              @if (v.respondidoEm) { <span class="vet-data">Vinculado em {{ v.respondidoEm | date:'dd/MM/yyyy' }}</span> }
             </div>
             <div class="vet-acoes">
-              <span class="status-chip {{ v.statusConta }}">{{ statusLabels[v.statusConta] }}</span>
-              @if (v.statusConta === 'Recusada') {
-                <button mat-stroked-button (click)="aprovar(v)"
-                        [disabled]="processandoId === v.id">Aprovar</button>
-              }
+              <span class="chip Aprovado">{{ label(v.status) }}</span>
+              <button mat-stroked-button (click)="desfazer(v)" [disabled]="processandoId === v.id">Desfazer</button>
+            </div>
+          </div>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Recusados e desfeitos -->
+  @if (historico.length > 0) {
+    <mat-card class="secao">
+      <mat-card-header>
+        <mat-card-title>Recusados e desfeitos</mat-card-title>
+        <mat-card-subtitle>O veterinário pode pedir vínculo de novo</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @for (v of historico; track v.id) {
+          <div class="vet-item">
+            <div class="vet-info">
+              <span class="vet-nome">{{ v.nome }}</span>
+              <span class="vet-detalhe">{{ formatarCrmv(v.crmvEstado, v.crmvNumero) }} · {{ v.email }}</span>
+            </div>
+            <div class="vet-acoes">
+              <span class="chip {{ v.status }}">{{ label(v.status) }}</span>
             </div>
           </div>
         }

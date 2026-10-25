@@ -42,6 +42,10 @@ import { ConsultaPublicaDto } from '../../core/models/solicitacao.model';
                 <span class="value status-chip {{ dados.status }}">{{ statusLabel(dados.status) }}</span>
               </div>
               <div class="info-item">
+                <span class="label">Laboratório</span>
+                <span class="value">{{ dados.laboratorioNome }}</span>
+              </div>
+              <div class="info-item">
                 <span class="label">Tipo de Exame</span>
                 <span class="value">{{ dados.tipoExame }}</span>
               </div>

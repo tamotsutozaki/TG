@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,13 +8,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SolicitacaoService } from '../../../core/services/solicitacao.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { SolicitacaoDto } from '../../../core/models/solicitacao.model';
 
 @Component({
   selector: 'app-solicitacoes-list',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, RouterLink,
     MatTableModule, MatButtonModule, MatIconModule,
     MatCardModule, MatProgressSpinnerModule, MatTooltipModule
   ],
@@ -24,7 +25,12 @@ import { SolicitacaoDto } from '../../../core/models/solicitacao.model';
 export class SolicitacoesListComponent implements OnInit {
   solicitacoes: SolicitacaoDto[] = [];
   loading = true;
-  colunas = ['codigoPublico', 'tipoExame', 'paciente', 'vet', 'status', 'data', 'acoes'];
+  auth = inject(AuthService);
+
+  // O veterinário vê de qual laboratório é cada solicitação; o laboratório vê quem pediu
+  colunas = this.auth.isVeterinario()
+    ? ['codigoPublico', 'tipoExame', 'paciente', 'laboratorio', 'status', 'data', 'acoes']
+    : ['codigoPublico', 'tipoExame', 'paciente', 'vet', 'status', 'data', 'acoes'];
 
   statusLabels: Record<string, string> = {
     Solicitado: 'Solicitado',

@@ -1,0 +1,37 @@
+<div class="page-header">
+  <div>
+    <h2>Veterinários</h2>
+    <p class="page-sub">Contas de veterinários. Cada laboratório aprova os próprios vínculos.</p>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+} @else if (veterinarios.length === 0) {
+  <mat-card class="empty-state">
+    <mat-icon>groups</mat-icon>
+    <p>Nenhum veterinário cadastrado ainda.</p>
+  </mat-card>
+} @else {
+  <mat-card>
+    <mat-card-content>
+      @for (v of veterinarios; track v.id) {
+        <div class="item" [class.inativo]="!v.ativo">
+          <div class="item-info">
+            <span class="item-titulo">{{ v.nome }}</span>
+            <span class="item-detalhe">{{ formatarCrmv(v.crmvEstado, v.crmvNumero) }} · {{ v.email }}</span>
+            @if (v.telefone) { <span class="item-detalhe">{{ v.telefone }}</span> }
+            <span class="item-data">Cadastrado em {{ v.criadoEm | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="item-acoes">
+            <span class="chip" [class.Ativo]="v.ativo" [class.Inativo]="!v.ativo">{{ v.ativo ? 'Ativo' : 'Inativo' }}</span>
+            <button mat-stroked-button [color]="v.ativo ? 'warn' : 'primary'"
+                    (click)="alternarAtivo(v)" [disabled]="processandoId === v.id">
+              {{ v.ativo ? 'Desativar' : 'Reativar' }}
+            </button>
+          </div>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+}

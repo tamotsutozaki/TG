@@ -1,0 +1,39 @@
+<div class="page-header">
+  <div>
+    <h2>Laboratórios</h2>
+    <p class="page-sub">Laboratórios cadastrados por convite. Desativar bloqueia o acesso na hora.</p>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+} @else if (laboratorios.length === 0) {
+  <mat-card class="empty-state">
+    <mat-icon>business</mat-icon>
+    <p>Nenhum laboratório cadastrado ainda.</p>
+    <a mat-flat-button color="primary" routerLink="/admin/convites">Gerar um convite</a>
+  </mat-card>
+} @else {
+  <mat-card>
+    <mat-card-content>
+      @for (l of laboratorios; track l.id) {
+        <div class="item" [class.inativo]="!l.ativo">
+          <div class="item-info">
+            <span class="item-titulo">{{ l.nome }}</span>
+            <span class="item-detalhe">CNPJ {{ formatarCnpj(l.cnpj) }} · {{ l.cidade }}/{{ l.uf }}</span>
+            <span class="item-detalhe">{{ l.email }} · {{ l.telefone }}</span>
+            <span class="item-detalhe">Responsável técnico: {{ l.responsavelTecnicoNome }}</span>
+            <span class="item-data">Cadastrado em {{ l.criadoEm | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="item-acoes">
+            <span class="chip" [class.Ativo]="l.ativo" [class.Inativo]="!l.ativo">{{ l.ativo ? 'Ativo' : 'Inativo' }}</span>
+            <button mat-stroked-button [color]="l.ativo ? 'warn' : 'primary'"
+                    (click)="alternarAtivo(l)" [disabled]="processandoId === l.id">
+              {{ l.ativo ? 'Desativar' : 'Reativar' }}
+            </button>
+          </div>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+}

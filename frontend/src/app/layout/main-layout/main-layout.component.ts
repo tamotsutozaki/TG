@@ -11,6 +11,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { PapelUsuario } from '../../core/models/auth.model';
 
 @Component({
   selector: 'app-main-layout',
@@ -36,22 +37,33 @@ export class MainLayoutComponent {
     { initialValue: false }
   );
 
-  private readonly itensPatologista = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
-    { label: 'Solicitações', icon: 'assignment', route: '/solicitacoes' },
-    { label: 'Tipos de Exame', icon: 'science', route: '/tipos-exame' },
-    { label: 'Estoque', icon: 'inventory_2', route: '/insumos' },
-    { label: 'Veterinários', icon: 'groups', route: '/veterinarios' }
-  ];
-
-  private readonly itensVeterinario = [
-    { label: 'Minhas Solicitações', icon: 'assignment', route: '/solicitacoes' }
-  ];
+  private readonly itensPorPapel: Record<PapelUsuario, { label: string; icon: string; route: string }[]> = {
+    Patologista: [
+      { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+      { label: 'Solicitações', icon: 'assignment', route: '/solicitacoes' },
+      { label: 'Tipos de Exame', icon: 'science', route: '/tipos-exame' },
+      { label: 'Estoque', icon: 'inventory_2', route: '/insumos' },
+      { label: 'Veterinários', icon: 'groups', route: '/veterinarios' },
+      { label: 'Meu perfil', icon: 'account_circle', route: '/perfil' }
+    ],
+    Veterinario: [
+      { label: 'Solicitações', icon: 'assignment', route: '/solicitacoes' },
+      { label: 'Meus Laboratórios', icon: 'biotech', route: '/laboratorios' },
+      { label: 'Meu perfil', icon: 'account_circle', route: '/perfil' }
+    ],
+    Administrador: [
+      { label: 'Convites', icon: 'add_link', route: '/admin/convites' },
+      { label: 'Laboratórios', icon: 'business', route: '/admin/laboratorios' },
+      { label: 'Veterinários', icon: 'groups', route: '/admin/veterinarios' },
+      { label: 'Meu perfil', icon: 'account_circle', route: '/perfil' }
+    ]
+  };
 
   constructor(public auth: AuthService) {}
 
   get navItems() {
-    return this.auth.isPatologista() ? this.itensPatologista : this.itensVeterinario;
+    const papel = this.auth.currentUser()?.papel;
+    return papel ? this.itensPorPapel[papel] : [];
   }
 
   fecharSeMobile(sidenav: { close: () => void }) {

@@ -4,7 +4,7 @@
     [opened]="!isMobile()">
     <div class="sidenav-header">
       <span class="logo">LabPat</span>
-      <span class="logo-sub">Patologia Veterinária</span>
+      <span class="logo-sub">{{ auth.isAdministrador() ? 'Administração do sistema' : 'Patologia Veterinária' }}</span>
     </div>
 
     <mat-nav-list>

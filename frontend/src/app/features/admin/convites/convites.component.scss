@@ -1,0 +1,51 @@
+.form-gerar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+
+  .campo-descricao { flex: 1; min-width: 220px; }
+  .campo-validade { width: 140px; }
+  button { height: 56px; }
+}
+
+.convite-criado {
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fffde7;
+  border: 1px solid #ffe082;
+
+  .aviso {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-weight: 500;
+    color: #8d6e00;
+  }
+  .validade { margin: 8px 0 0; font-size: 13px; color: #666; }
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  &:last-child { border-bottom: none; }
+}
+
+.item-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.item-titulo { font-size: 15px; font-weight: 500; }
+.item-detalhe { font-size: 13px; color: #666; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.item-acoes { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.mini { font-size: 16px; width: 16px; height: 16px; }
+
+@media (max-width: 600px) {
+  .form-gerar button { width: 100%; }
+  .item { flex-direction: column; align-items: stretch; }
+  .item-acoes { justify-content: space-between; }
+}

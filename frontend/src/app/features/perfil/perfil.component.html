@@ -1,0 +1,180 @@
+<div class="page-header">
+  <h2>Meu perfil</h2>
+</div>
+
+@if (loading) {
+  <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+} @else {
+
+  <!-- Laboratório -->
+  @if (laboratorio) {
+    <mat-card class="secao">
+      <mat-card-header>
+        <mat-card-title>Convide veterinários</mat-card-title>
+        <mat-card-subtitle>Envie este link para os veterinários pedirem vínculo com o laboratório.</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="link-box mt-2">
+          <code>{{ linkVinculo }}</code>
+          <button mat-flat-button color="primary" type="button" (click)="copiarLink()">
+            <mat-icon>content_copy</mat-icon> Copiar
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <form [formGroup]="formLaboratorio" (ngSubmit)="salvarLaboratorio()">
+      <mat-card class="secao">
+        <mat-card-header>
+          <mat-card-title>Dados do laboratório</mat-card-title>
+          <mat-card-subtitle>Aparecem no cabeçalho dos laudos.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="somente-leitura">
+            <div><span class="label">CNPJ</span><span>{{ laboratorio.cnpj }}</span></div>
+            <div><span class="label">E-mail de acesso</span><span>{{ laboratorio.emailLogin }}</span></div>
+          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Nome do laboratório</mat-label>
+            <input matInput formControlName="nome">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Endereço (rua, número e bairro)</mat-label>
+            <input matInput formControlName="endereco">
+          </mat-form-field>
+          <div class="linha">
+            <mat-form-field appearance="outline" class="flex-2">
+              <mat-label>Cidade</mat-label>
+              <input matInput formControlName="cidade">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>UF</mat-label>
+              <mat-select formControlName="uf">
+                @for (uf of ufs; track uf) { <mat-option [value]="uf">{{ uf }}</mat-option> }
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <div class="linha">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Telefone</mat-label>
+              <input matInput formControlName="telefone">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>E-mail de contato</mat-label>
+              <input matInput formControlName="email" type="email">
+              @if (formLaboratorio.get('email')?.hasError('email')) { <mat-error>E-mail inválido</mat-error> }
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="secao">
+        <mat-card-header>
+          <mat-card-title>Responsável técnico</mat-card-title>
+          <mat-card-subtitle>Assina os próximos laudos. Laudos já emitidos mantêm a assinatura original.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="w-100 mt-2">
+            <mat-label>Nome completo</mat-label>
+            <input matInput formControlName="responsavelTecnicoNome">
+          </mat-form-field>
+          <div class="linha">
+            <mat-form-field appearance="outline" class="flex-2">
+              <mat-label>Nº do CRMV</mat-label>
+              <input matInput formControlName="responsavelTecnicoCrmvNumero" inputmode="numeric" maxlength="6">
+              @if (formLaboratorio.get('responsavelTecnicoCrmvNumero')?.hasError('pattern')) {
+                <mat-error>Apenas números (até 6 dígitos)</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>UF do CRMV</mat-label>
+              <mat-select formControlName="responsavelTecnicoCrmvEstado">
+                @for (uf of ufs; track uf) { <mat-option [value]="uf">{{ uf }}</mat-option> }
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <div class="acoes">
+            <button mat-flat-button color="primary" type="submit" [disabled]="salvando || formLaboratorio.pristine">
+              @if (salvando) { <mat-spinner diameter="18"></mat-spinner> } @else { Salvar alterações }
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
+  }
+
+  <!-- Veterinário -->
+  @if (veterinario) {
+    <form [formGroup]="formVeterinario" (ngSubmit)="salvarVeterinario()">
+      <mat-card class="secao">
+        <mat-card-header><mat-card-title>Meus dados</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <div class="somente-leitura">
+            <div><span class="label">CRMV</span><span>{{ crmvVeterinario }}</span></div>
+            <div><span class="label">E-mail de acesso</span><span>{{ veterinario.email }}</span></div>
+          </div>
+          <div class="linha">
+            <mat-form-field appearance="outline" class="flex-2">
+              <mat-label>Nome completo</mat-label>
+              <input matInput formControlName="nome">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Telefone</mat-label>
+              <input matInput formControlName="telefone">
+            </mat-form-field>
+          </div>
+          <div class="acoes">
+            <button mat-flat-button color="primary" type="submit" [disabled]="salvando || formVeterinario.pristine">
+              @if (salvando) { <mat-spinner diameter="18"></mat-spinner> } @else { Salvar alterações }
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
+  }
+
+  <!-- Administrador -->
+  @if (auth.isAdministrador()) {
+    <mat-card class="secao">
+      <mat-card-header><mat-card-title>Conta de administrador</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <div class="somente-leitura mt-2">
+          <div><span class="label">Nome</span><span>{{ auth.currentUser()?.nome }}</span></div>
+          <div><span class="label">E-mail de acesso</span><span>{{ auth.currentUser()?.email }}</span></div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Senha (todos) -->
+  <form [formGroup]="formSenha" (ngSubmit)="alterarSenha()">
+    <mat-card class="secao">
+      <mat-card-header><mat-card-title>Alterar senha</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <div class="linha mt-2">
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Senha atual</mat-label>
+            <input matInput type="password" formControlName="senhaAtual" autocomplete="current-password">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Nova senha</mat-label>
+            <input matInput type="password" formControlName="novaSenha" autocomplete="new-password">
+            @if (formSenha.get('novaSenha')?.hasError('minlength')) { <mat-error>Mínimo de 8 caracteres</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Confirmar nova senha</mat-label>
+            <input matInput type="password" formControlName="confirmarSenha" autocomplete="new-password">
+          </mat-form-field>
+        </div>
+        @if (formSenha.hasError('senhasDiferentes') && formSenha.get('confirmarSenha')?.touched) {
+          <p class="erro-msg">As senhas não conferem.</p>
+        }
+        <div class="acoes">
+          <button mat-stroked-button color="primary" type="submit" [disabled]="trocandoSenha">
+            @if (trocandoSenha) { <mat-spinner diameter="18"></mat-spinner> } @else { Alterar senha }
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </form>
+}
