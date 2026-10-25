@@ -39,3 +39,19 @@ code {
 }
 
 table { border-radius: 8px; overflow: hidden; }
+
+@media (max-width: 600px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    h2 { font-size: 20px; }
+    button { width: 100%; }
+  }
+
+  // Esconde colunas secundárias no celular (veterinário e data)
+  .mat-column-vet,
+  .mat-column-data {
+    display: none;
+  }
+}

@@ -36,3 +36,15 @@
   &.Recusada { background: #ffebee; color: #c62828; }
   &.Pendente { background: #fff8e1; color: #f57f17; }
 }
+
+@media (max-width: 600px) {
+  .vet-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .vet-acoes {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    button { flex: 1; }
+  }
+}

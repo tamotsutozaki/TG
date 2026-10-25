@@ -28,3 +28,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background:
 }
 
 .estoque-baixo { color: #c62828; font-weight: 500; }
+
+// Tabelas roláveis horizontalmente em telas estreitas
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

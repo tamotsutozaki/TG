@@ -1,5 +1,7 @@
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav mode="side" opened class="sidenav">
+  <mat-sidenav #sidenav class="sidenav"
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile()">
     <div class="sidenav-header">
       <span class="logo">LabPat</span>
       <span class="logo-sub">Patologia Veterinária</span>
@@ -7,7 +9,8 @@
 
     <mat-nav-list>
       @for (item of navItems; track item.route) {
-        <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
+        <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link"
+           (click)="fecharSeMobile(sidenav)">
           <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
           <span matListItemTitle>{{ item.label }}</span>
         </a>
@@ -22,7 +25,17 @@
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="content">
-    <router-outlet></router-outlet>
+  <mat-sidenav-content class="content-wrapper">
+    @if (isMobile()) {
+      <mat-toolbar class="mobile-toolbar">
+        <button mat-icon-button (click)="sidenav.toggle()" aria-label="Abrir menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="mobile-title">LabPat</span>
+      </mat-toolbar>
+    }
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

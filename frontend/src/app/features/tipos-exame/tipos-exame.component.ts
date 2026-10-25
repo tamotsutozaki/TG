@@ -50,7 +50,7 @@ import { TipoExameDetalhadoDto, TipoExameDto } from '../../core/models/tipo-exam
       <button mat-raised-button color="primary" (click)="salvar()">Salvar</button>
     </mat-dialog-actions>
   `,
-  styles: [`.form-col { display: flex; flex-direction: column; gap: 4px; min-width: 360px; padding-top: 8px; }`]
+  styles: [`.form-col { display: flex; flex-direction: column; gap: 4px; width: min(360px, 78vw); padding-top: 8px; }`]
 })
 export class TipoExameDialogComponent {
   form: FormGroup;
@@ -79,7 +79,7 @@ export class TipoExameDialogComponent {
     MatInputModule, MatButtonModule, MatProgressSpinnerModule, MatDividerModule],
   template: `
     <h2 mat-dialog-title>Templates — {{ data.nome }}</h2>
-    <mat-dialog-content style="min-width:440px; max-height:70vh; overflow-y:auto">
+    <mat-dialog-content style="min-width:min(440px, 85vw); max-height:70vh; overflow-y:auto">
       @if (data.templates.length === 0) {
         <p style="color:#9e9e9e; padding: 8px 0">Nenhum template cadastrado.</p>
       }

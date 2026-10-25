@@ -17,6 +17,7 @@
   </mat-card>
 } @else {
   <mat-card>
+    <div class="table-scroll">
     <table mat-table [dataSource]="solicitacoes" class="w-100">
       <ng-container matColumnDef="codigoPublico">
         <th mat-header-cell *matHeaderCellDef>Código</th>
@@ -65,5 +66,6 @@
       <tr mat-row *matRowDef="let row; columns: colunas;"
           class="clickable-row" (click)="abrir(row.id)"></tr>
     </table>
+    </div>
   </mat-card>
 }

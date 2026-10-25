@@ -108,3 +108,22 @@
 .hist-obs { font-size: 13px; color: #616161; margin: 4px 0 0; }
 
 mat-spinner { display: inline-block; margin-right: 8px; }
+
+@media (max-width: 600px) {
+  .page-header h2 { font-size: 18px; }
+
+  .grid-info {
+    grid-template-columns: 1fr;
+  }
+
+  .status-update-form {
+    flex-direction: column;
+    mat-form-field, .obs-field { width: 100%; flex: none; }
+    button { width: 100%; }
+  }
+
+  .acoes-laudo {
+    flex-direction: column-reverse;
+    button { width: 100%; }
+  }
+}

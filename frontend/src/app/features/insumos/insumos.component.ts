@@ -52,7 +52,7 @@ import { InsumoDto } from '../../core/models/insumo.model';
       <button mat-raised-button color="primary" (click)="salvar()">Salvar</button>
     </mat-dialog-actions>
   `,
-  styles: [`.form-col { display: flex; flex-direction: column; gap: 4px; min-width: 320px; padding-top: 8px; }`]
+  styles: [`.form-col { display: flex; flex-direction: column; gap: 4px; width: min(320px, 78vw); padding-top: 8px; }`]
 })
 export class InsumoDialogComponent {
   form: FormGroup;

@@ -15,6 +15,7 @@
   </mat-card>
 } @else {
   <mat-card>
+    <div class="table-scroll">
     <table mat-table [dataSource]="insumos" class="w-100">
       <ng-container matColumnDef="nome">
         <th mat-header-cell *matHeaderCellDef>Nome</th>
@@ -75,5 +76,6 @@
       <tr mat-row *matRowDef="let row; columns: colunas;"
           [class.linha-alerta]="row.emEstoqueBaixo"></tr>
     </table>
+    </div>
   </mat-card>
 }

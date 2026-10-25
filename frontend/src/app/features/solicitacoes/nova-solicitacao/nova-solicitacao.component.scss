@@ -66,3 +66,23 @@
 }
 
 mat-spinner { display: inline-block; margin-right: 8px; }
+
+@media (max-width: 600px) {
+  .page-header h2 { font-size: 20px; }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .toggle-grupo {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .acoes {
+    flex-direction: column-reverse;
+    button { width: 100%; }
+  }
+}
