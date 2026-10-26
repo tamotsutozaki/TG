@@ -1,0 +1,3 @@
+- [Pedro orquestra, Claude executa](pedro-orquestra-claude-executa.md) — Claude faz código, testes e escrita do TG; Pedro só valida e decide
+- [Monografia do TG: estado e geração](fluxo-tg-dev-antes-da-escrita.md) — texto escrito em .md e gerado por script; pendências [PREENCHER]; nunca editar o .docx à mão
+- [Roteiro de testes (artifact)](roteiro-de-testes-artifact.md) — link do checklist de 52 passos; resultados do Pedro no db, coleção "resultados"
