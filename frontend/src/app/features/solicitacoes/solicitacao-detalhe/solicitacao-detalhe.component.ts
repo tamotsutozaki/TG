@@ -107,7 +107,8 @@ export class SolicitacaoDetalheComponent implements OnInit {
   calcularProximos() {
     if (!this.solicitacao) return;
     const idx = this.statusOrdem.indexOf(this.solicitacao.status);
-    this.proximos = this.statusOrdem.slice(idx + 1);
+    // "Concluído" não é escolhido aqui: a solicitação é concluída ao emitir o laudo
+    this.proximos = this.statusOrdem.slice(idx + 1).filter(s => s !== 'Concluido');
   }
 
   get statusAtualIndex(): number {

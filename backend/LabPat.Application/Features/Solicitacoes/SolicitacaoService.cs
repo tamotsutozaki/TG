@@ -95,6 +95,16 @@ public class SolicitacaoService(
         var solicitacao = await solicitacaoRepository.GetByIdComDetalhesAsync(id);
         if (solicitacao is null) return null;
 
+        // O status só avança, e "Concluído" só é atingido pela emissão do laudo (que também baixa o estoque)
+        if (!Enum.IsDefined(input.NovoStatus))
+            throw new RegraNegocioException("Status inválido.");
+        if (solicitacao.Status == StatusSolicitacao.Concluido)
+            throw new RegraNegocioException("Esta solicitação já foi concluída.");
+        if (input.NovoStatus == StatusSolicitacao.Concluido)
+            throw new RegraNegocioException("A solicitação é concluída ao emitir o laudo.");
+        if (input.NovoStatus <= solicitacao.Status)
+            throw new RegraNegocioException("O status só pode avançar para uma etapa seguinte.");
+
         var historico = new HistoricoStatus
         {
             SolicitacaoId = solicitacao.Id,
@@ -106,9 +116,6 @@ public class SolicitacaoService(
 
         solicitacao.Status = input.NovoStatus;
         solicitacao.Historico.Add(historico);
-
-        if (input.NovoStatus == StatusSolicitacao.Concluido)
-            solicitacao.DataConclusao = DateTime.UtcNow;
 
         solicitacaoRepository.Update(solicitacao);
         await unitOfWork.CommitAsync();

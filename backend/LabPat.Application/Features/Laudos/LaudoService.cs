@@ -26,6 +26,9 @@ public class LaudoService(
         if (solicitacao.Laudo is not null || await laudoRepository.GetBySolicitacaoIdAsync(solicitacao.Id) is not null)
             throw new RegraNegocioException("Já existe um laudo para esta solicitação.");
 
+        if (solicitacao.Status is not (StatusSolicitacao.AmostraRecebida or StatusSolicitacao.EmAnalise))
+            throw new RegraNegocioException("O laudo só pode ser emitido depois do recebimento da amostra.");
+
         Validacao.Obrigatorio(input.Conteudo, "o conteúdo do laudo");
 
         var laboratorio = await laboratorioRepository.GetByIdAsync(solicitacao.LaboratorioId)
