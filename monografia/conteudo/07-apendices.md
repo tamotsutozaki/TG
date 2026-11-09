@@ -48,7 +48,7 @@ Intenção de uso:
 
 # APÊNDICE B – Roteiro de testes funcionais
 
-Além dos testes automatizados, o autor elaborou um roteiro de 52 passos, organizados em 11 partes, para a verificação manual do sistema no navegador, com uma janela para cada perfil (administrador, laboratório e veterinário). O @qua:roteiro resume as partes do roteiro e o que cada uma verifica.
+O autor elaborou um roteiro de 52 passos, organizados em 11 partes, para a verificação do sistema no navegador, com uma janela para cada perfil (administrador, laboratório e veterinário) e uma janela sem login para a consulta pública. O roteiro foi escrito para ser executado manualmente e, depois, automatizado integralmente, como descrito na seção 4.2.1. O @qua:roteiro resume as partes do roteiro e o que cada uma verifica.
 
 {{quadro id="roteiro" titulo="Partes do roteiro de testes funcionais" fonte="Elaborado pelo autor (2026)." larguras="5,11"}}
 | Parte | O que verifica |
@@ -65,11 +65,11 @@ Além dos testes automatizados, o autor elaborou um roteiro de 52 passos, organi
 | 11. Celular | Uso das telas em um celular |
 {{/quadro}}
 
-[[DADOS ILUSTRATIVOS – a serem substituídos pelos resultados reais da coleta]] O roteiro foi executado integralmente pelo autor: dos 52 passos, 50 foram aprovados na primeira execução, e os 2 restantes apresentaram falhas que foram corrigidas e verificadas novamente.
+Na execução automatizada do roteiro na versão final do sistema, todos os 52 passos foram aprovados, em 53 casos de teste, como mostra a @tab:testes-interface.
 
 # APÊNDICE C – Material utilizado na avaliação da extração
 
-A @fig:guia-teste reproduz a guia de solicitação fictícia utilizada na avaliação da extração multimodal (seção 4.2.3), enviada nos formatos PNG e PDF. Todos os nomes, registros e contatos são fictícios.
+A @fig:guia-teste reproduz a guia de solicitação fictícia utilizada na avaliação da extração multimodal (seção 4.2.2), enviada nos formatos PNG e PDF. Todos os nomes, registros e contatos são fictícios.
 
 {{figura id="guia-teste" arquivo="guia-teste.png" largura="10" titulo="Guia de solicitação fictícia utilizada nos testes de extração" fonte="Elaborado pelo autor (2026)."}}
 

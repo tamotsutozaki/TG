@@ -20,7 +20,7 @@ As tecnologias empregadas no desenvolvimento estão resumidas no @qua:tecnologia
 | Segurança | JWT e BCrypt.Net | Autenticação sem estado e armazenamento seguro de senhas |
 | Documentos | QuestPDF | Geração do laudo em PDF |
 | Inteligência artificial | API do Google Gemini (modelo gemini-3.8-flash) | Extração de dados de foto, PDF e áudio da guia |
-| Testes | Python e Playwright | Testes automatizados da API e da interface no navegador |
+| Testes | Python e Playwright | Testes funcionais automatizados no navegador |
 | Versionamento | Git | Controle de versões do código-fonte |
 | Hospedagem (prevista) | Microsoft Azure (programa Azure for Students) | Publicação do *frontend*, da API e do banco de dados |
 {{/quadro}}
@@ -113,7 +113,7 @@ Por fim, a @fig:sequencia detalha a extração multimodal. O usuário escolhe o 
 
 Para avaliar se os objetivos foram atingidos, foram adotados quatro mecanismos complementares, escolhidos para reduzir o viés do autor e oferecer uma leitura mais imparcial dos resultados.
 
-O primeiro são os testes funcionais automatizados, que verificam o comportamento do sistema do ponto de vista do usuário, sem depender da estrutura interna do código (PRESSMAN; MAXIM, 2016). Foram escritos roteiros que exercitam a API e a interface no navegador, e o critério adotado foi a aprovação de todas as verificações na versão final do sistema.
+O primeiro são os testes funcionais automatizados, que verificam o comportamento do sistema do ponto de vista do usuário, sem depender da estrutura interna do código (PRESSMAN; MAXIM, 2016). Foi escrito um roteiro de testes que percorre, no navegador, as funcionalidades de todos os perfis de usuário, automatizado para ser executado novamente a cada versão, e o critério adotado foi a aprovação de todos os passos na versão final do sistema.
 
 O segundo é a medição da extração multimodal. A mesma guia fictícia foi enviada nos três formatos de entrada (foto, PDF e áudio), em execuções repetidas, e para cada execução foram contados os campos extraídos corretamente, entre os 16 solicitados ao modelo, e o tempo de resposta.
 

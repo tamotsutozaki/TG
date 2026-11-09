@@ -146,60 +146,35 @@ Durante o desenvolvimento, o sistema foi executado localmente, com o banco de da
 
 ### 4.2 Implementação, avaliação e análise dos testes realizados
 
-#### 4.2.1 Testes automatizados da API
+#### 4.2.1 Testes funcionais automatizados
 
-Os testes da API foram escritos em Python e executados contra uma instância do sistema ligada a um banco de dados exclusivo para testes, recriado a cada execução. Cada verificação envia requisições HTTP e confere o código de resposta e o conteúdo devolvido; algumas consultam também o banco, por exemplo para confirmar que apenas o *hash* do convite é armazenado e que nenhuma solicitação mistura dados de laboratórios diferentes. Foram organizadas três suítes: a primeira cobre a administração, os convites, o isolamento entre laboratórios, os vínculos, os perfis e a desativação de contas; a segunda cobre o laudo, o PDF, as datas em UTC, o perfil e a troca de senha; e a terceira cobre as regras de status, como a proibição de retroceder etapas, de concluir a solicitação sem laudo e de emitir o laudo antes do recebimento da amostra. A @tab:testes-api apresenta o resultado da execução na versão final do sistema, em 25 de outubro de 2026.
+Os testes funcionais foram automatizados com a biblioteca Playwright, escrita em Python, que controla o navegador Chromium e interage com as telas reais do sistema, como faria um usuário: preenche formulários, escolhe opções, clica em botões, baixa arquivos e confere o que aparece na tela. A suíte automatiza integralmente o roteiro de 52 passos, organizados em 11 partes, apresentado no Apêndice B, e cada passo corresponde a um caso de teste com as mesmas ações e as mesmas conferências do roteiro manual.
 
-{{tabela id="testes-api" titulo="Resultados dos testes automatizados da API" fonte="Elaborado pelo autor (2026)." larguras="10,3,3"}}
-| Grupo de verificações | Verificações | Aprovadas |
-| **Suíte 1: multilaboratório** | | |
-| Administrador | 5 | 5 |
-| Convites e cadastro de laboratórios | 14 | 14 |
-| Isolamento entre laboratórios | 20 | 20 |
-| Veterinários e vínculos | 37 | 37 |
-| Perfis de acesso | 3 | 3 |
-| Desativação de contas | 8 | 8 |
-| Integridade no banco de dados | 2 | 2 |
-| **Suíte 2: laudo, perfil e datas** | | |
-| Preparação dos dados | 2 | 2 |
-| Datas em UTC | 2 | 2 |
-| Laudo e PDF | 3 | 3 |
-| Perfil do laboratório | 10 | 10 |
-| Perfil do veterinário | 3 | 3 |
-| Troca de senha | 4 | 4 |
-| Perfis de acesso | 1 | 1 |
-| **Suíte 3: regras de status** | | |
-| Avanço de etapas, conclusão pelo laudo e emissão após a amostra | 10 | 10 |
-| **Total** | **124** | **124** |
+Para não interferir no ambiente de desenvolvimento, a própria suíte prepara um ambiente isolado a cada execução: apaga e recria um banco de dados exclusivo para testes, inicia uma instância da API ligada a esse banco e uma instância do *frontend* configurada para acessá-la. Assim como no roteiro manual, cada perfil usa uma sessão separada do navegador, com o seu próprio login: administrador, laboratório, veterinário e um visitante sem login, para a consulta pública. Os passos são executados em sequência e os dados criados em um passo, como os convites, os laboratórios e as solicitações, são usados nos seguintes, o que exercita o fluxo completo, da geração do convite pelo administrador à emissão do laudo e à desativação de contas.
+
+Algumas conferências vão além do que aparece na tela. Os laudos baixados em PDF têm o texto extraído e verificado, para confirmar o cabeçalho do laboratório, os dados do paciente, o veterinário solicitante, o responsável técnico com CRMV e o horário de Brasília; a troca do responsável técnico é verificada comparando o PDF de um laudo novo com o de um laudo emitido antes da troca. A consulta pública é verificada também quanto ao que não deve aparecer, como o nome e o telefone do tutor. A última parte repete a navegação com a tela de um celular, de 390 *pixels* de largura, e confere que o menu abre como gaveta e que nenhuma página rola na horizontal. Nos passos de extração por IA, a resposta do Gemini foi simulada com os dados da guia fictícia, para que o resultado não dependesse da rede nem da disponibilidade do serviço; a qualidade da extração real foi medida separadamente, como descrito na seção 4.2.2.
+
+A suíte também verifica os casos de erro previstos: o convite revogado ou já utilizado, o CNPJ com dígito verificador inválido, a senha curta e a confirmação diferente, o CRMV já cadastrado, a senha atual incorreta, a conta desativada, que perde o acesso imediatamente, e o acesso a telas de outro perfil, que redireciona o usuário para a sua página inicial. A @tab:testes-interface apresenta o resultado da execução na versão final do sistema, em 8 de novembro de 2026. O passo 5.3, que repete a extração com o PDF e com o áudio, foi executado como dois casos de teste.
+
+{{tabela id="testes-interface" titulo="Resultados dos testes funcionais automatizados" fonte="Elaborado pelo autor (2026)." larguras="10,3,3"}}
+| Parte do roteiro | Casos de teste | Aprovados |
+| 1. Administrador e convites | 5 | 5 |
+| 2. Cadastro do laboratório | 5 | 5 |
+| 3. Configuração do laboratório | 6 | 6 |
+| 4. Conta e vínculo do veterinário | 7 | 7 |
+| 5. Solicitações, laudo e consulta | 13 | 13 |
+| 6. Dois laboratórios | 4 | 4 |
+| 7. Desfazer vínculo | 2 | 2 |
+| 8. Perfil e senha | 3 | 3 |
+| 9. Desativação de contas | 4 | 4 |
+| 10. Permissões | 3 | 3 |
+| 11. Celular | 1 | 1 |
+| **Total** | **53** | **53** |
 {{/tabela}}
 
-Entre as verificações de isolamento, destacam-se as que tentam, com a conta de um laboratório, ler, alterar ou excluir dados de outro laboratório, emitir laudo em solicitação alheia e usar o tipo de exame de outro laboratório em uma solicitação; em todos os casos, a API respondeu como se o registro não existisse. Nas verificações de vínculo, confirmou-se, por exemplo, que o veterinário sem vínculo aprovado não vê nenhuma solicitação, que, após o desfazimento do vínculo, mantém apenas a leitura do que enviou e que o administrador não acessa as rotas de operação dos laboratórios.
+Os 53 casos de teste foram aprovados em três execuções consecutivas, com cerca de 70 segundos cada uma, o que indica que o resultado não depende de variações de tempo de resposta. O código da suíte faz parte do repositório do projeto, na pasta `tests`, e pode ser executado novamente a qualquer momento com um único comando.
 
-#### 4.2.2 Testes de interface
-
-Os testes de interface foram automatizados com a biblioteca Playwright, que controla o navegador Google Chrome e interage com as telas reais do sistema, como faria um usuário. Foram escritos dois roteiros: uma jornada completa, que percorre o fluxo desde a geração do convite pelo administrador até o *download* do laudo pelo veterinário e a desativação de sua conta, e um roteiro específico para o vínculo de insumos e o desconto de estoque. A @tab:testes-interface apresenta os resultados.
-
-{{tabela id="testes-interface" titulo="Resultados dos testes automatizados de interface" fonte="Elaborado pelo autor (2026)." larguras="10,3,3"}}
-| Etapa verificada | Verificações | Aprovadas |
-| **Jornada completa** | | |
-| Administrador gera o convite | 3 | 3 |
-| Laboratório se cadastra pelo convite | 3 | 3 |
-| Laboratório confere o perfil e se prepara | 4 | 4 |
-| Veterinário chega pelo link de vínculo | 5 | 5 |
-| Laboratório aprova o vínculo | 2 | 2 |
-| Veterinário envia a solicitação | 4 | 4 |
-| Laboratório avança o status e emite o laudo | 2 | 2 |
-| Veterinário baixa o laudo em PDF | 1 | 1 |
-| Administrador desativa a conta do veterinário | 3 | 3 |
-| **Insumos e estoque** | | |
-| Vínculo de insumos ao tipo de exame | 5 | 5 |
-| Desconto de estoque na emissão do laudo | 2 | 2 |
-| **Total** | **34** | **34** |
-{{/tabela}}
-
-Somadas as duas abordagens, as 158 verificações automatizadas foram aprovadas na versão final. As duas respostas de erro registradas durante a jornada eram esperadas e fazem parte do que se queria verificar: a tentativa de reutilizar um convite já usado e o acesso de um veterinário logo após a desativação de sua conta.
-
-#### 4.2.3 Avaliação da extração multimodal
+#### 4.2.2 Avaliação da extração multimodal
 
 Para avaliar a extração, foi elaborada uma guia de solicitação fictícia, com os dados de um veterinário, de um tutor, de um paciente, do exame e do histórico clínico, apresentada em dois formatos, imagem PNG e PDF. O mesmo pedido foi gravado em áudio, no formato WAV, com voz sintética, ditando os dados como faria um veterinário em uma mensagem. Cada arquivo foi enviado cinco vezes à API do sistema, com o modelo gemini-3.8-flash. Em cada execução, os 16 campos devolvidos foram comparados aos valores esperados; nos campos ausentes do documento, como o e-mail do tutor, e, no áudio, também o e-mail e o telefone do veterinário, o acerto consistia em devolver o campo vazio, sem inventar valores. Na comparação, foram desconsideradas diferenças de maiúsculas, acentos e formatação; os telefones foram comparados pelos dígitos e a descrição clínica, pela presença dos termos essenciais. O conteúdo da guia, a transcrição do áudio e os valores esperados encontram-se no Apêndice C. Os tempos foram medidos a partir do computador de desenvolvimento e incluem o envio do arquivo pela internet e o processamento pelo Gemini. A @tab:extracao resume os resultados.
 
@@ -213,7 +188,7 @@ Para avaliar a extração, foi elaborada uma guia de solicitação fictícia, co
 
 Todos os campos foram extraídos corretamente nas 15 execuções, inclusive os vazios, e o tempo de resposta ficou entre 4,6 e 9,5 segundos, compatível com o uso durante a abertura de uma solicitação. Esses resultados indicam a viabilidade da abordagem, mas devem ser lidos com cautela: a guia utilizada é digitada e bem enquadrada, e o áudio foi gerado por voz sintética, sem ruído. Guias manuscritas, fotos com pouca luz ou inclinadas e áudios gravados em ambientes ruidosos tendem a reduzir a taxa de acerto, e o risco de alucinação apontado por Pal e Sankarasubbu (2024) não desaparece. Por isso, o sistema mantém a revisão obrigatória dos dados pelo usuário antes da criação da solicitação, e a avaliação com guias reais é indicada como trabalho futuro.
 
-#### 4.2.4 Problemas encontrados e correções
+#### 4.2.3 Problemas encontrados e correções
 
 Os testes revelaram problemas que não eram aparentes durante o desenvolvimento das funcionalidades isoladas. O @qua:correcoes reúne os principais, com a causa identificada e a correção aplicada.
 
@@ -230,7 +205,7 @@ Os testes revelaram problemas que não eram aparentes durante o desenvolvimento 
 
 O problema do estoque ilustra a importância dos testes de ponta a ponta: o desconto automático estava implementado e funcionava na API, mas, sem uma tela para configurar o consumo de cada exame, ele nunca seria acionado por um usuário real. A falha só foi percebida ao percorrer o fluxo completo pela interface. Já a possibilidade de concluir uma solicitação sem laudo foi identificada durante a preparação das telas para este documento; após a correção, foi criada a suíte de regras de status, para que o problema não volte a ocorrer.
 
-#### 4.2.5 Validação com a patologista colaboradora
+#### 4.2.4 Validação com a patologista colaboradora
 
 [[DADOS ILUSTRATIVOS – a serem substituídos pelos resultados reais da coleta]]
 
@@ -238,7 +213,7 @@ A validação foi realizada em uma sessão de cerca de uma hora com a médica ve
 
 A profissional considerou os campos da solicitação adequados ao fluxo do laboratório e destacou a padronização das informações como o principal ganho em relação ao recebimento de pedidos por aplicativo de mensagens. Avaliou positivamente o preenchimento a partir da foto da guia, ressaltando que a revisão dos dados antes do envio é indispensável. Entre as sugestões, apontou a inclusão de um campo para o tipo de material enviado, como sangue, tecido ou material de punção, a possibilidade de anexar a imagem da guia à solicitação e a criação de contas separadas para a equipe do laboratório, registradas como trabalhos futuros na seção 4.3.
 
-#### 4.2.6 Questionário aplicado aos usuários
+#### 4.2.5 Questionário aplicado aos usuários
 
 [[DADOS ILUSTRATIVOS – a serem substituídos pelos resultados reais da coleta]]
 
@@ -265,11 +240,11 @@ A @tab:respostas resume a concordância com as afirmações, agrupadas por const
 
 A transparência e a privacidade da consulta pública obtiveram a maior concordância (93,3%), seguidas da utilidade percebida (85,0%) e da intenção de uso (83,3%). O construto com menor concordância foi o da entrada por IA (77,8%), influenciado pela afirmação sobre o envio por áudio, que dividiu os participantes: parte deles relatou preferir a foto ou o PDF da guia. Nas perguntas abertas, os comentários mais frequentes destacaram a rapidez para abrir solicitações e a consulta por código, e as sugestões concentraram-se em avisos automáticos de mudança de status e em uma versão do sistema para instalar no celular.
 
-#### 4.2.7 Análise dos resultados
+#### 4.2.6 Análise dos resultados
 
 Em relação à padronização das informações, o sistema passou a exigir, em toda solicitação, os mesmos dados mínimos (tipo de exame, tutor, paciente e veterinário solicitante com CRMV válido), registrados de forma estruturada e reaproveitados nas solicitações seguintes do mesmo laboratório, o que reduz a dependência de mensagens livres para a abertura do pedido. O acompanhamento do exame deixou de depender de contatos individuais: cada mudança de status fica registrada com data e responsável, e o andamento pode ser consultado pelo código público.
 
-Quanto à qualidade da extração pelo Gemini, a medição realizada mostrou acerto em todos os campos da guia de teste nos três formatos, em poucos segundos, o que responde positivamente, dentro das limitações discutidas, à segunda questão de pesquisa. Os testes automatizados confirmaram ainda o isolamento entre laboratórios e o controle de acesso por perfil, requisitos essenciais para a operação de vários laboratórios na mesma plataforma, e a minimização dos dados expostos na consulta pública, relacionada à terceira questão de pesquisa.
+Quanto à qualidade da extração pelo Gemini, a medição realizada mostrou acerto em todos os campos da guia de teste nos três formatos, em poucos segundos, o que responde positivamente, dentro das limitações discutidas, à segunda questão de pesquisa. Os testes funcionais automatizados confirmaram ainda, pela interface, o isolamento entre laboratórios e o controle de acesso por perfil, requisitos essenciais para a operação de vários laboratórios na mesma plataforma, e a minimização dos dados expostos na consulta pública, relacionada à terceira questão de pesquisa.
 
 [[DADOS ILUSTRATIVOS – a serem substituídos pelos resultados reais da coleta]] A validação com a patologista colaboradora e o questionário indicam percepção favorável quanto à redução do esforço na abertura e no acompanhamento das solicitações e quanto à transparência do processo, o que sustenta, dentro dos limites de uma amostra pequena e não probabilística, a hipótese formulada e responde à primeira e à terceira questões de pesquisa. A menor concordância em relação ao envio por áudio sugere que esse canal deve ser oferecido como alternativa, e não como forma principal de solicitação.
 
