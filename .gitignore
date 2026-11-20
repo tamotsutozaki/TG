@@ -19,3 +19,6 @@ Thumbs.db
 
 # Claude Code (config local)
 .claude/settings.local.json
+
+# Material do orientador (modelos, exemplos de outros alunos) - não publicar
+modelo prof marlon/
