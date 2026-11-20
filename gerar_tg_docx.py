@@ -46,7 +46,7 @@ TITULO = ("Sistema web para gestão do fluxo de trabalho em laboratórios de "
           "patologia veterinária: da solicitação à emissão de laudos")
 CIDADE = "INDAIATUBA"
 ANO = "2026"
-ORIENTACAO = "Marlon [[PREENCHER: titulação e sobrenome]]"
+ORIENTACAO = "Marlon Palata Fanger Rodrigues"
 LARGURA_TEXTO = 16.0                 # cm (21 - 3 - 2)
 ESPACO_TITULO = Pt(18)               # uma linha em branco de 1,5 (12 pt x 1,5)
 CAPITULOS = ["01-introducao.md", "02-capitulo-1.md", "03-capitulo-2.md", "04-capitulo-3.md",
@@ -497,7 +497,7 @@ def main():
     escrever(p, "Trabalho de Graduação apresentado por Pedro Henrique Tamotsu Tozaki como "
                 "pré-requisito parcial para a conclusão do Curso Superior de Tecnologia em Análise e "
                 "Desenvolvimento de Sistemas, da Faculdade de Tecnologia de Indaiatuba, elaborado sob a "
-                f"orientação do(a) Prof.(a) {ORIENTACAO}.")
+                f"orientação do Prof. {ORIENTACAO}.")
     vazio(doc, 8)
     for l in (CIDADE, ANO):
         linha_central(doc, l)
