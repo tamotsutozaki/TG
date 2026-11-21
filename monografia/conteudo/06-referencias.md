@@ -10,7 +10,7 @@ CFMV - CONSELHO FEDERAL DE MEDICINA VETERINÁRIA. Resolução nº 1.374, de 2 de
 
 CHAVES, E. L.; REZENDE, G. G. **Vetservice**: sistema de gestão clínica veterinária. 2022. Trabalho de Graduação (Tecnologia em Análise e Desenvolvimento de Sistemas) – Faculdade de Tecnologia de Taubaté, Taubaté, 2022. Disponível em: http://ric.cps.sp.gov.br/handle/123456789/11277. Acesso em: 25 out. 2026.
 
-CRIASOFT. **Workvet**: software para laboratórios veterinários. Disponível em: https://criasoft.com.br/workvet-software-para-laboratorios-veterinarios/. Acesso em: 25 out. 2026.
+CRIASOFT. **Workvet**: software para laboratórios veterinários. [2026]. Disponível em: https://criasoft.com.br/workvet-software-para-laboratorios-veterinarios/. Acesso em: 25 out. 2026.
 
 DAVIS, F. D. Perceived usefulness, perceived ease of use, and user acceptance of information technology. **MIS Quarterly**, Minneapolis, v. 13, n. 3, p. 319-340, 1989.
 
@@ -26,7 +26,7 @@ GOOGLE. **Document understanding**: Gemini API. 2026b. Disponível em: https://a
 
 GOOGLE. **Structured outputs**: Gemini API. 2026c. Disponível em: https://ai.google.dev/gemini-api/docs/structured-output. Acesso em: 25 out. 2026.
 
-IDEA INFO. **VetCloud**: software para laboratório veterinário. Disponível em: https://vetcloud.ideainfo.com.br/. Acesso em: 25 out. 2026.
+IDEA INFO. **VetCloud**: software para laboratório veterinário. [2026]. Disponível em: https://vetcloud.ideainfo.com.br/. Acesso em: 25 out. 2026.
 
 JONES, M.; BRADLEY, J.; SAKIMURA, N. **JSON Web Token (JWT)**: RFC 7519. [*S. l.*]: Internet Engineering Task Force, 2015. Disponível em: https://www.rfc-editor.org/rfc/rfc7519. Acesso em: 25 out. 2026.
 
@@ -60,12 +60,12 @@ SANTOS, R. L.; ALESSI, A. C. (ed.). **Patologia veterinária**. 2. ed. São Paul
 
 SEPULVEDA, J. L.; YOUNG, D. S. The ideal laboratory information system. **Archives of Pathology & Laboratory Medicine**, Northfield, v. 137, n. 8, p. 1129-1140, 2013. DOI: https://doi.org/10.5858/arpa.2012-0362-RA.
 
-VETCONTROL. **VetControl**: software para laboratório veterinário. Disponível em: https://www.vetcontrol.online/site/. Acesso em: 25 out. 2026.
+VETCONTROL. **VetControl**: software para laboratório veterinário. [2026]. Disponível em: https://www.vetcontrol.online/site/. Acesso em: 25 out. 2026.
 
-VETSOFT. **Resultados de exames**: VetSoft Web. Disponível em: https://www.vetsoft.com.br/online/exames/. Acesso em: 25 out. 2026.
+VETSOFT. **Resultados de exames**: VetSoft Web. [2026]. Disponível em: https://www.vetsoft.com.br/online/exames/. Acesso em: 25 out. 2026.
 
 VETUS. **Configurando o LiveLab**. 2026a. Disponível em: https://petlove-vetus.zendesk.com/hc/pt-br/articles/4416648816155-Configurando-o-LiveLab. Acesso em: 25 out. 2026.
 
 VETUS. **Lista completa das funcionalidades da Plataforma Vetus**. 2026b. Disponível em: https://vetus.com.br/universidade/funcionalidades-da-plataforma-vetus/. Acesso em: 25 out. 2026.
 
-WEB BRASÍLIA. **AplusVet**: software para laboratório veterinário. Disponível em: https://aplusvet.webaplus.com.br/. Acesso em: 25 out. 2026.
+WEB BRASÍLIA. **AplusVet**: software para laboratório veterinário. [2026]. Disponível em: https://aplusvet.webaplus.com.br/. Acesso em: 25 out. 2026.

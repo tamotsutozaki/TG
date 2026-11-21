@@ -1,14 +1,14 @@
 # CAPÍTULO II
 
-## 3 METODOLOGIA
+## 2 METODOLOGIA
 
-### 3.1 Natureza da pesquisa
+### 2.1 Natureza da pesquisa
 
-Além da natureza experimental, apresentada na seção 1.4, a pesquisa pode ser classificada quanto aos objetivos e quanto aos procedimentos técnicos, conforme Gil (2002). Quanto aos objetivos, tem caráter exploratório, por buscar maior familiaridade com um problema ainda pouco estudado no contexto dos laboratórios veterinários brasileiros, e descritivo, ao registrar as percepções dos usuários sobre a solução desenvolvida. Quanto aos procedimentos técnicos, combina três abordagens: a pesquisa bibliográfica, empregada na fundamentação teórica e no levantamento dos trabalhos relacionados; a pesquisa experimental, que consistiu em desenvolver o sistema, introduzindo a digitalização do fluxo e a entrada multimodal de dados por IA, e observar seus efeitos em testes controlados; e o levantamento, realizado por meio de um questionário aplicado a potenciais usuários.
+Além da natureza experimental, apresentada na Introdução, a pesquisa pode ser classificada quanto aos objetivos e quanto aos procedimentos técnicos, conforme Gil (2002). Quanto aos objetivos, tem caráter exploratório, por buscar maior familiaridade com um problema ainda pouco estudado no contexto dos laboratórios veterinários brasileiros, e descritivo, ao registrar as percepções dos usuários sobre a solução desenvolvida. Quanto aos procedimentos técnicos, combina três abordagens: a pesquisa bibliográfica, empregada na fundamentação teórica e no levantamento dos trabalhos relacionados; a pesquisa experimental, que consistiu em desenvolver o sistema, introduzindo a digitalização do fluxo e a entrada multimodal de dados por IA, e observar seus efeitos em testes controlados; e o levantamento, a ser realizado por meio de um questionário aplicado a potenciais usuários.
 
-Como não houve grupo de controle nem medição do processo anterior à adoção do sistema, os efeitos sobre o esforço operacional e a transparência foram observados pela percepção da profissional colaboradora e dos participantes do questionário, e não por medições diretas de tempo. Já o comportamento do sistema e a qualidade da extração de dados foram verificados de forma objetiva, por meio de testes automatizados e de medições repetidas.
+Como não houve grupo de controle nem medição do processo anterior à adoção do sistema, os efeitos sobre o esforço operacional e a transparência são avaliados pela percepção da profissional colaboradora e dos participantes do questionário, e não por medições diretas de tempo. Já o comportamento do sistema e a qualidade da extração de dados foram verificados de forma objetiva, por meio de testes automatizados e de medições repetidas.
 
-### 3.2 Padrões para a pesquisa experimental
+### 2.2 Padrões para a pesquisa experimental
 
 As tecnologias empregadas no desenvolvimento estão resumidas no @qua:tecnologias. Na camada de *backend*, utilizou-se a plataforma .NET 10, com a linguagem C# e o ASP.NET Core, para construir uma API REST responsável pelas regras de negócio, pela persistência, pela autenticação e pela integração com a API do Google Gemini. A persistência foi implementada com o sistema gerenciador de banco de dados SQL Server, acessado por meio do mapeamento objeto-relacional (*Object-Relational Mapping* – ORM) do Entity Framework Core. Na camada de *frontend*, utilizou-se o Angular 18 com a biblioteca de componentes Angular Material, na forma de uma SPA responsiva.
 
@@ -27,11 +27,11 @@ As tecnologias empregadas no desenvolvimento estão resumidas no @qua:tecnologia
 
 Em relação ao planejamento inicial do projeto de trabalho de graduação, que previa o uso de Next.js no *frontend* e de PostgreSQL no banco de dados, duas mudanças foram feitas no início do desenvolvimento. O Angular foi adotado no lugar do Next.js pela coesão com o ecossistema Microsoft do *backend* e por sua estrutura, que já traz injeção de dependências, roteamento e formulários; como a aplicação funciona como SPA e a página pública é simples, os recursos de renderização no servidor do Next.js deixaram de ser necessários. O SQL Server substituiu o PostgreSQL pela integração madura com o Entity Framework Core e pela possibilidade de hospedagem gratuita no Azure SQL por meio do programa Azure for Students.
 
-A integração com o Gemini foi feita exclusivamente no *backend*: o *frontend* envia o arquivo à API do sistema, que o repassa ao Gemini com a chave de acesso guardada na configuração do servidor, de modo que essa chave nunca é exposta ao navegador. O modelo utilizado é definido na configuração da aplicação, o que facilitou sua substituição quando a versão inicialmente adotada foi descontinuada pelo fornecedor. Os trabalhos relacionados do Capítulo I serviram de referência para as funcionalidades contempladas e para os critérios de avaliação descritos na seção 3.5.
+A integração com o Gemini foi feita exclusivamente no *backend*: o *frontend* envia o arquivo à API do sistema, que o repassa ao Gemini com a chave de acesso guardada na configuração do servidor, de modo que essa chave nunca é exposta ao navegador. O modelo utilizado é definido na configuração da aplicação, o que facilitou sua substituição quando a versão inicialmente adotada foi descontinuada pelo fornecedor. Os trabalhos relacionados do Capítulo I serviram de referência para as funcionalidades contempladas e para os critérios de avaliação descritos na seção 2.5.
 
-### 3.3 Experimento de pesquisa
+### 2.3 Experimento de pesquisa
 
-O experimento de pesquisa consistiu no desenvolvimento do sistema em incrementos, abordagem em que o *software* é construído em partes funcionais sucessivas, cada uma acrescentando novas capacidades às anteriores (PRESSMAN; MAXIM, 2016). O desenvolvimento ocorreu entre agosto e outubro de 2026, com cada incremento registrado no controle de versão. As principais etapas foram:
+O experimento de pesquisa consistiu no desenvolvimento do sistema em incrementos, abordagem em que o *software* é construído em partes funcionais sucessivas, cada uma acrescentando novas capacidades às anteriores (PRESSMAN; MAXIM, 2016). O desenvolvimento ocorreu entre agosto e novembro de 2026, com cada incremento registrado no controle de versão. As principais etapas foram:
 
 a) levantamento de requisitos com a médica veterinária patologista colaboradora, que contribuiu para a definição dos campos da solicitação e do fluxo de status do exame;
 b) modelagem de dados e organização dos projetos de *frontend* e de *backend*;
@@ -79,7 +79,7 @@ A partir do levantamento inicial e dessas decisões, os requisitos foram classif
 | RNF08 | Rastreabilidade: datas armazenadas em UTC (*Coordinated Universal Time*) e exibidas no horário local; cada laudo guarda o responsável técnico vigente na emissão. |
 {{/quadro}}
 
-### 3.4 Diagramas
+### 2.4 Diagramas
 
 Os diagramas a seguir apresentam a estrutura e o comportamento do sistema desenvolvido. A @fig:arquitetura mostra a arquitetura geral, com a separação entre o *frontend*, executado no navegador, o *backend*, que expõe a API REST, o banco de dados e os serviços externos. O *frontend* se comunica com o *backend* por meio do protocolo *Hypertext Transfer Protocol Secure* (HTTPS), trocando dados em JSON, e cada requisição autenticada leva o *token* JWT do usuário.
 
@@ -101,7 +101,7 @@ A @fig:adesao mostra o fluxo de adesão de laboratórios e veterinários. O admi
 
 {{figura id="adesao" arquivo="diagrama-adesao.png" largura="16" titulo="Fluxo de adesão de laboratórios e veterinários" fonte="Elaborado pelo autor (2026)."}}
 
-A @fig:er apresenta o modelo de dados, em notação de entidade-relacionamento. As entidades com a coluna LaboratorioId pertencem a um laboratório e são filtradas automaticamente, conforme a abordagem de banco compartilhado descrita na seção 2.3.3. A tabela EXAME_INSUMO, com chave composta, registra a quantidade de cada insumo consumida por tipo de exame, e o índice único em SolicitacaoId garante no máximo um laudo por solicitação. Para não sobrecarregar o diagrama, foram omitidas as ligações do laboratório com tutores, pacientes, veterinários solicitantes e solicitações, representadas apenas pela coluna LaboratorioId, e as ligações com o usuário que registrou cada solicitação, emitiu cada laudo ou alterou cada status.
+A @fig:er apresenta o modelo de dados, em notação de entidade-relacionamento. As entidades com a coluna LaboratorioId pertencem a um laboratório e são filtradas automaticamente, conforme a abordagem de banco compartilhado descrita na seção 1.3.3. A tabela EXAME_INSUMO, com chave composta, registra a quantidade de cada insumo consumida por tipo de exame, e o índice único em SolicitacaoId garante no máximo um laudo por solicitação. Para não sobrecarregar o diagrama, foram omitidas as ligações do laboratório com tutores, pacientes, veterinários solicitantes e solicitações, representadas apenas pela coluna LaboratorioId, e as ligações com o usuário que registrou cada solicitação, emitiu cada laudo ou alterou cada status.
 
 {{figura id="er" arquivo="diagrama-er.png" largura="15.5" titulo="Modelo de dados (diagrama entidade-relacionamento)" fonte="Elaborado pelo autor (2026)."}}
 
@@ -109,7 +109,7 @@ Por fim, a @fig:sequencia detalha a extração multimodal. O usuário escolhe o 
 
 {{figura id="sequencia" arquivo="diagrama-sequencia.png" largura="15" titulo="Sequência da extração de dados com IA" fonte="Elaborado pelo autor (2026)."}}
 
-### 3.5 Critérios para avaliação
+### 2.5 Critérios para avaliação
 
 Para avaliar se os objetivos foram atingidos, foram adotados quatro mecanismos complementares, escolhidos para reduzir o viés do autor e oferecer uma leitura mais imparcial dos resultados.
 
@@ -121,4 +121,4 @@ O terceiro é a validação com a médica veterinária patologista colaboradora,
 
 O quarto é a aplicação de um questionário *on-line* (Google Forms) a potenciais usuários, patologistas e médicos veterinários, após o uso do sistema. Trata-se de uma amostra não probabilística, por conveniência, formada por profissionais da rede de contatos da colaboradora e do autor. O questionário utiliza a escala de Likert (1932), com cinco pontos, de "discordo totalmente" a "concordo totalmente", e suas afirmações foram organizadas a partir dos construtos do Modelo de Aceitação de Tecnologia (*Technology Acceptance Model* – TAM), de Davis (1989): utilidade percebida, facilidade de uso percebida e intenção de uso. Foram acrescentadas afirmações sobre a extração por IA e sobre a transparência e a privacidade da consulta pública. As respostas são analisadas pela proporção de concordância (notas 4 e 5) e pela mediana, agrupadas por construto. A participação é voluntária e anônima: o formulário apresenta os objetivos da pesquisa e pede o consentimento do participante, sem coletar nome, e-mail ou outros dados que o identifiquem. O questionário completo encontra-se no Apêndice A.
 
-Esses mecanismos se relacionam aos critérios definidos no projeto: a redução percebida do esforço operacional do patologista e a transparência percebida por solicitantes e tutores são avaliadas pela validação e pelo questionário; a padronização das informações, pelos requisitos implementados e pelos testes; e a qualidade da extração de dados pelo Gemini, pela medição descrita acima. Como indicado na seção 3.1, a redução de esforço é avaliada pela percepção dos usuários, e não pela cronometragem do processo antes e depois do uso do sistema.
+Esses mecanismos se relacionam aos critérios definidos no projeto: a redução percebida do esforço operacional do patologista e a transparência percebida por solicitantes e tutores são avaliadas pela validação e pelo questionário; a padronização das informações, pelos requisitos implementados e pelos testes; e a qualidade da extração de dados pelo Gemini, pela medição descrita acima. Como indicado na seção 2.1, a redução de esforço é avaliada pela percepção dos usuários, e não pela cronometragem do processo antes e depois do uso do sistema.

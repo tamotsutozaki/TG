@@ -444,10 +444,11 @@ def margens(sec):
     sec.right_margin = Cm(2)
 
 
-def linha_central(doc, texto, bold=True):
+def linha_central(doc, texto, bold=False, size=14):
+    """Linha centralizada da capa e da folha de rosto (modelo do TG: 14 normal; título 16 negrito)."""
     p = doc.add_paragraph()
     formatar(p, WD_ALIGN_PARAGRAPH.CENTER, recuo=0)
-    escrever(p, texto, bold=bold)
+    escrever(p, texto, bold=bold, size=size)
 
 
 def vazio(doc, n):
@@ -472,7 +473,7 @@ def main():
     vazio(doc, 6)
     linha_central(doc, AUTOR)
     vazio(doc, 2)
-    linha_central(doc, TITULO)
+    linha_central(doc, TITULO, bold=True, size=16)
     vazio(doc, 10)
     for l in (CIDADE, ANO):
         linha_central(doc, l)
@@ -490,15 +491,15 @@ def main():
     vazio(doc, 4)
     linha_central(doc, AUTOR)
     vazio(doc, 2)
-    linha_central(doc, TITULO)
+    linha_central(doc, TITULO, bold=True, size=16)
     vazio(doc, 3)
     p = doc.add_paragraph()
-    formatar(p, WD_ALIGN_PARAGRAPH.JUSTIFY, recuo=0, esquerda=8, simples=True)
+    formatar(p, WD_ALIGN_PARAGRAPH.JUSTIFY, recuo=0, esquerda=7, simples=True)
     escrever(p, "Trabalho de Graduação apresentado por Pedro Henrique Tamotsu Tozaki como "
                 "pré-requisito parcial para a conclusão do Curso Superior de Tecnologia em Análise e "
                 "Desenvolvimento de Sistemas, da Faculdade de Tecnologia de Indaiatuba, elaborado sob a "
                 f"orientação do Prof. {ORIENTACAO}.")
-    vazio(doc, 8)
+    vazio(doc, 6)
     for l in (CIDADE, ANO):
         linha_central(doc, l)
     doc.add_page_break()

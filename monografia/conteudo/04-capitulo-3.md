@@ -1,12 +1,12 @@
 # CAPÍTULO III
 
-## 4 APRESENTAÇÃO, DOCUMENTAÇÃO E ANÁLISE DE DADOS
+## 3 APRESENTAÇÃO, DOCUMENTAÇÃO E ANÁLISE DE DADOS
 
-### 4.1 Desenvolvimento do sistema
+### 3.1 Desenvolvimento do sistema
 
 Esta seção apresenta o sistema desenvolvido, denominado LabPat, organizado pelos perfis de acesso e pelos módulos que compõem o fluxo do laboratório. As telas foram capturadas com dados fictícios, cadastrados apenas para a demonstração.
 
-#### 4.1.1 Perfis de acesso
+#### 3.1.1 Perfis de acesso
 
 O sistema atende os quatro perfis apresentados no diagrama de casos de uso, resumidos no @qua:perfis. Cada perfil autenticado vê um menu próprio, e as rotas da interface são protegidas por guardas que conferem o perfil do usuário. Essa proteção, no entanto, serve apenas à navegação: a API confere o perfil novamente em cada requisição, de modo que uma chamada feita diretamente a ela, sem passar pela interface, também é barrada.
 
@@ -20,7 +20,7 @@ O sistema atende os quatro perfis apresentados no diagrama de casos de uso, resu
 
 Na configuração adotada, cada laboratório possui uma única conta de acesso, utilizada pelo patologista responsável. Essa decisão, tomada com base no perfil dos laboratórios de pequeno e médio porte que motivaram o trabalho, simplificou o controle de acesso; a criação de várias contas por laboratório, com papéis internos, é apontada como trabalho futuro.
 
-#### 4.1.2 Organização do *backend*
+#### 3.1.2 Organização do *backend*
 
 Seguindo a divisão em projetos apresentada na @fig:camadas, os controladores da API foram mantidos enxutos: recebem a requisição, chamam o serviço correspondente e devolvem a resposta. As regras de negócio ficam nos serviços da camada de aplicação, organizados por funcionalidade (solicitações, laudos, tipos de exame, insumos, vínculos, administração e perfil), e o acesso aos dados é feito por repositórios, com a gravação concentrada em uma unidade de trabalho, que confirma todas as alterações de uma operação de uma só vez.
 
@@ -40,7 +40,7 @@ As violações de regras de negócio são sinalizadas por exceções específica
 | /api/perfil | Dados do laboratório, dados do veterinário e troca de senha | Conforme o perfil |
 {{/quadro}}
 
-#### 4.1.3 Persistência e isolamento entre laboratórios
+#### 3.1.3 Persistência e isolamento entre laboratórios
 
 O banco de dados foi criado e evoluído por meio das migrações do Entity Framework Core, quatro ao final do desenvolvimento, aplicadas automaticamente na inicialização da API em ambiente de desenvolvimento. Para isolar os laboratórios, adotou-se a abordagem de banco compartilhado com coluna de identificação (MICROSOFT, 2022): as entidades que pertencem a um laboratório, como tipos de exame, insumos, tutores, pacientes e solicitações, possuem a coluna LaboratorioId e recebem um filtro global de consulta, que restringe automaticamente toda leitura ao laboratório do usuário autenticado. Quando não há laboratório definido para a requisição, o filtro não devolve nenhum registro, ou seja, o comportamento padrão é negar o acesso. Na gravação, o identificador do laboratório é preenchido automaticamente nos novos registros, sem depender de cada serviço.
 
@@ -48,7 +48,7 @@ O veterinário é o único caso em que o laboratório não vem do *login*, já q
 
 Índices únicos no banco reforçam as regras de negócio: o CNPJ e o código do link de vínculo de cada laboratório, o *hash* do convite, o código público da solicitação, o e-mail de cada conta, o CRMV entre as contas ativas, o par veterinário e laboratório nos vínculos e o laudo de cada solicitação. O convite possui, ainda, um controle de concorrência que impede que duas requisições simultâneas o utilizem. As datas são gravadas em UTC e convertidas para o horário local na interface.
 
-#### 4.1.4 Autenticação e segurança
+#### 3.1.4 Autenticação e segurança
 
 O *login* devolve um JWT válido por 8 horas, com o identificador, o nome, o perfil e, no caso das contas de laboratório, o laboratório do usuário. A cada requisição autenticada, a API confere se a conta e o laboratório continuam ativos; assim, quando o administrador desativa uma conta, o acesso é interrompido imediatamente, mesmo que o *token* ainda esteja dentro da validade, e novas tentativas de *login* são recusadas. No *frontend*, um interceptador anexa o *token* às requisições e, ao receber uma resposta de sessão inválida, encerra a sessão e avisa o usuário.
 
@@ -56,7 +56,7 @@ As senhas são armazenadas com *hash* bcrypt e devem ter ao menos oito caractere
 
 No cadastro do laboratório, o CNPJ é validado pelos dígitos verificadores, tanto no formato numérico quanto no alfanumérico, adotado pela Receita Federal a partir de julho de 2026 (BRASIL, 2024). O CRMV dos veterinários e dos responsáveis técnicos é validado quanto ao número e à Unidade Federativa (UF), e não podem existir duas contas ativas com o mesmo CRMV. As chaves de assinatura dos *tokens* e de acesso ao Gemini, bem como as credenciais do administrador, ficam na configuração do ambiente e não são versionadas com o código-fonte.
 
-#### 4.1.5 Administração e adesão de laboratórios
+#### 3.1.5 Administração e adesão de laboratórios
 
 O administrador gera os convites na tela mostrada na @fig:admin-convites, informando opcionalmente para quem é o convite e escolhendo a validade. O link é exibido uma única vez, com um botão para copiá-lo, já que o sistema guarda apenas o seu *hash*. A lista de convites indica o estado de cada um (ativo, usado, revogado ou expirado) e, quando usado, qual laboratório se cadastrou com ele. Em telas próprias, o administrador consulta os laboratórios e os veterinários cadastrados e pode desativá-los ou reativá-los, sempre com uma confirmação.
 
@@ -66,7 +66,7 @@ Ao abrir o link, o laboratório encontra o formulário da @fig:cadastro-laborato
 
 {{figura id="cadastro-laboratorio" arquivo="tela-cadastro-laboratorio.png" largura="15.5" titulo="Cadastro do laboratório a partir do convite" fonte="Elaborado pelo autor (2026)."}}
 
-#### 4.1.6 Configuração do laboratório
+#### 3.1.6 Configuração do laboratório
 
 Antes de receber solicitações, o laboratório cadastra os tipos de exame que oferece, com nome, descrição e prazo estimado em dias, usado para calcular a previsão de conclusão de cada solicitação. Para cada tipo de exame, é possível cadastrar modelos de laudo, mostrados na @fig:templates. Os modelos são versionados: cada novo modelo recebe o número de versão seguinte, e os laudos já emitidos guardam o próprio conteúdo, de modo que alterações futuras no modelo não os afetam. Tipos de exame e insumos são desativados logicamente, preservando o histórico das solicitações já registradas.
 
@@ -80,7 +80,7 @@ O vínculo entre o estoque e os exames é configurado no diálogo de insumos con
 
 {{figura id="insumos-consumidos" arquivo="tela-insumos-consumidos.png" largura="15.5" titulo="Insumos consumidos por tipo de exame" fonte="Elaborado pelo autor (2026)."}}
 
-#### 4.1.7 Veterinários e vínculos
+#### 3.1.7 Veterinários e vínculos
 
 Na tela de veterinários (@fig:veterinarios), o laboratório encontra o link de vínculo, que pode ser enviado aos veterinários com quem trabalha, os pedidos pendentes, que pode aprovar ou recusar, e a lista de veterinários vinculados, com a opção de desfazer o vínculo.
 
@@ -92,7 +92,7 @@ O veterinário, por sua vez, cria a conta informando nome, e-mail, senha e CRMV,
 
 Sem vínculo aprovado, o veterinário não consegue criar solicitações para o laboratório. Após uma recusa, ele pode pedir o vínculo novamente. Se o laboratório desfizer um vínculo aprovado, o veterinário deixa de enviar novas solicitações e de ver as que o laboratório cadastrou em seu nome, mas mantém o acesso, apenas para leitura, às solicitações que ele mesmo enviou e aos respectivos laudos.
 
-#### 4.1.8 Solicitações e entrada multimodal com IA
+#### 3.1.8 Solicitações e entrada multimodal com IA
 
 O formulário de nova solicitação é organizado em seções: o laboratório de destino, no caso do veterinário, escolhido entre os que aprovaram o vínculo; o método de entrada; o exame, com o tipo e a descrição clínica; os dados do veterinário solicitante, preenchidos apenas quando a solicitação é registrada pelo laboratório, já que a do veterinário usa os dados da própria conta; os dados do tutor; e os dados do paciente. Ao salvar, o sistema reaproveita, dentro do laboratório, os cadastros já existentes: o tutor é localizado pelo telefone, o paciente pelo nome entre os animais do tutor e o veterinário solicitante pelo CRMV. Em seguida, gera o código público e calcula a data estimada de conclusão a partir do prazo do tipo de exame.
 
@@ -106,7 +106,7 @@ O método de entrada fica registrado na solicitação. A lista de solicitações
 
 {{figura id="solicitacoes-veterinario" arquivo="tela-solicitacoes-veterinario.png" largura="15.5" titulo="Solicitações de um veterinário vinculado a dois laboratórios" fonte="Elaborado pelo autor (2026)."}}
 
-#### 4.1.9 Acompanhamento e emissão do laudo
+#### 3.1.9 Acompanhamento e emissão do laudo
 
 A página de detalhe da solicitação apresenta o progresso do exame, os dados do paciente e do tutor, os dados do exame e do solicitante e o histórico das mudanças de status. O laboratório avança o status escolhendo a próxima etapa, com uma observação opcional; a etapa Concluído não aparece entre as opções, pois só é atingida com a emissão do laudo. A partir dos estados Amostra recebida ou Em análise, o botão de emitir laudo abre o editor já preenchido com a versão mais recente do modelo do tipo de exame (@fig:editor-laudo), que o patologista completa com os achados do caso.
 
@@ -120,13 +120,13 @@ O laudo em PDF, gerado com a biblioteca QuestPDF no momento do *download*, traz 
 
 {{figura id="laudo-pdf" arquivo="laudo-pdf.png" largura="12" titulo="Laudo em PDF gerado pelo sistema" fonte="Elaborado pelo autor (2026)."}}
 
-#### 4.1.10 Painel de indicadores
+#### 3.1.10 Painel de indicadores
 
 Ao entrar no sistema, o laboratório vê o painel da @fig:dashboard, com o total de solicitações, as que estão em andamento, as concluídas e as que estão com o prazo vencido, a distribuição por status, a lista de solicitações não concluídas com previsão já ultrapassada e a lista de insumos abaixo da quantidade mínima, com acesso direto ao estoque.
 
 {{figura id="dashboard" arquivo="tela-dashboard.png" largura="15.5" titulo="Painel de indicadores do laboratório" fonte="Elaborado pelo autor (2026)."}}
 
-#### 4.1.11 Página inicial e consulta pública
+#### 3.1.11 Página inicial e consulta pública
 
 A página inicial do sistema é pública e tem como principal função a consulta do exame pelo código (@fig:home). Ela também orienta os veterinários a entrar ou criar uma conta e informa que os laboratórios entram no sistema por convite.
 
@@ -136,7 +136,7 @@ Ao informar o código, o tutor ou o solicitante vê o andamento do exame, com o 
 
 {{figura id="consulta-publica" arquivo="tela-consulta-publica.png" largura="9" titulo="Consulta pública do exame pelo código" fonte="Elaborado pelo autor (2026)."}}
 
-#### 4.1.12 Responsividade e implantação
+#### 3.1.12 Responsividade e implantação
 
 A interface foi adaptada a telas estreitas: no celular, o menu lateral passa a abrir como gaveta, e as tabelas e os diálogos se ajustam à largura da tela, como mostra a @fig:celular.
 
@@ -144,17 +144,17 @@ A interface foi adaptada a telas estreitas: no celular, o menu lateral passa a a
 
 Durante o desenvolvimento, o sistema foi executado localmente, com o banco de dados no SQL Server LocalDB. Para a avaliação com usuários, a publicação foi planejada no Microsoft Azure, por meio do programa Azure for Students: o *frontend* no Azure Static Web Apps, a API no Azure App Service e o banco de dados no Azure SQL Database. Como as chaves, a conexão com o banco, o endereço autorizado do *frontend* e as credenciais do administrador são lidos da configuração, a publicação não exige alterações no código. A publicação será feita antes da avaliação com usuários, para que a patologista colaboradora e os participantes do questionário acessem o sistema pelo navegador, sem depender do computador do autor.
 
-### 4.2 Implementação, avaliação e análise dos testes realizados
+### 3.2 Implementação, avaliação e análise dos testes realizados
 
-#### 4.2.1 Testes funcionais automatizados
+#### 3.2.1 Testes funcionais automatizados
 
 Os testes funcionais foram automatizados com a biblioteca Playwright, escrita em Python, que controla o navegador Chromium e interage com as telas reais do sistema, como faria um usuário: preenche formulários, escolhe opções, clica em botões, baixa arquivos e confere o que aparece na tela. A suíte automatiza integralmente o roteiro de 52 passos, organizados em 11 partes, apresentado no Apêndice B, e cada passo corresponde a um caso de teste com as mesmas ações e as mesmas conferências do roteiro manual.
 
 Para não interferir no ambiente de desenvolvimento, a própria suíte prepara um ambiente isolado a cada execução: apaga e recria um banco de dados exclusivo para testes, inicia uma instância da API ligada a esse banco e uma instância do *frontend* configurada para acessá-la. Assim como no roteiro manual, cada perfil usa uma sessão separada do navegador, com o seu próprio login: administrador, laboratório, veterinário e um visitante sem login, para a consulta pública. Os passos são executados em sequência e os dados criados em um passo, como os convites, os laboratórios e as solicitações, são usados nos seguintes, o que exercita o fluxo completo, da geração do convite pelo administrador à emissão do laudo e à desativação de contas.
 
-Algumas conferências vão além do que aparece na tela. Os laudos baixados em PDF têm o texto extraído e verificado, para confirmar o cabeçalho do laboratório, os dados do paciente, o veterinário solicitante, o responsável técnico com CRMV e o horário de Brasília; a troca do responsável técnico é verificada comparando o PDF de um laudo novo com o de um laudo emitido antes da troca. A consulta pública é verificada também quanto ao que não deve aparecer, como o nome e o telefone do tutor. A última parte repete a navegação com a tela de um celular, de 390 *pixels* de largura, e confere que o menu abre como gaveta e que nenhuma página rola na horizontal. Nos passos de extração por IA, a resposta do Gemini foi simulada com os dados da guia fictícia, para que o resultado não dependesse da rede nem da disponibilidade do serviço; a qualidade da extração real foi medida separadamente, como descrito na seção 4.2.2.
+Algumas conferências vão além do que aparece na tela. Os laudos baixados em PDF têm o texto extraído e verificado, para confirmar o cabeçalho do laboratório, os dados do paciente, o veterinário solicitante, o responsável técnico com CRMV e o horário de Brasília; a troca do responsável técnico é verificada comparando o PDF de um laudo novo com o de um laudo emitido antes da troca. A consulta pública é verificada também quanto ao que não deve aparecer, como o nome e o telefone do tutor. A última parte repete a navegação com a tela de um celular, de 390 *pixels* de largura, e confere que o menu abre como gaveta e que nenhuma página rola na horizontal. Nos passos de extração por IA, a resposta do Gemini foi simulada com os dados da guia fictícia, para que o resultado não dependesse da rede nem da disponibilidade do serviço; a qualidade da extração real foi medida separadamente, como descrito na seção 3.2.2.
 
-A suíte também verifica os casos de erro previstos: o convite revogado ou já utilizado, o CNPJ com dígito verificador inválido, a senha curta e a confirmação diferente, o CRMV já cadastrado, a senha atual incorreta, a conta desativada, que perde o acesso imediatamente, e o acesso a telas de outro perfil, que redireciona o usuário para a sua página inicial. A @tab:testes-interface apresenta o resultado da execução na versão final do sistema, em 8 de novembro de 2026. O passo 5.3, que repete a extração com o PDF e com o áudio, foi executado como dois casos de teste.
+A suíte também verifica os casos de erro previstos: o convite revogado ou já utilizado, o CNPJ com dígito verificador inválido, a senha curta e a confirmação diferente, o CRMV já cadastrado, a senha atual incorreta, a conta desativada, que perde o acesso imediatamente, e o acesso a telas de outro perfil, que redireciona o usuário para a sua página inicial. A @tab:testes-interface apresenta o resultado da execução na versão final do sistema, em 20 de novembro de 2026. O passo 5.3, que repete a extração com o PDF e com o áudio, foi executado como dois casos de teste.
 
 {{tabela id="testes-interface" titulo="Resultados dos testes funcionais automatizados" fonte="Elaborado pelo autor (2026)." larguras="10,3,3"}}
 | Parte do roteiro | Casos de teste | Aprovados |
@@ -172,9 +172,9 @@ A suíte também verifica os casos de erro previstos: o convite revogado ou já 
 | **Total** | **53** | **53** |
 {{/tabela}}
 
-Os 53 casos de teste foram aprovados em três execuções consecutivas, com cerca de 70 segundos cada uma, o que indica que o resultado não depende de variações de tempo de resposta. O código da suíte faz parte do repositório do projeto, na pasta `tests`, e pode ser executado novamente a qualquer momento com um único comando.
+Os 53 casos de teste foram aprovados em três execuções consecutivas, com cerca de 70 segundos cada uma, o que indica que o resultado não depende de variações de tempo de resposta. O código da suíte faz parte do repositório do projeto, na pasta "tests", e pode ser executado novamente a qualquer momento com um único comando.
 
-#### 4.2.2 Avaliação da extração multimodal
+#### 3.2.2 Avaliação da extração multimodal
 
 Para avaliar a extração, foi elaborada uma guia de solicitação fictícia, com os dados de um veterinário, de um tutor, de um paciente, do exame e do histórico clínico, apresentada em dois formatos, imagem PNG e PDF. O mesmo pedido foi gravado em áudio, no formato WAV, com voz sintética, ditando os dados como faria um veterinário em uma mensagem. Cada arquivo foi enviado cinco vezes à API do sistema, com o modelo gemini-3.8-flash. Em cada execução, os 16 campos devolvidos foram comparados aos valores esperados; nos campos ausentes do documento, como o e-mail do tutor, e, no áudio, também o e-mail e o telefone do veterinário, o acerto consistia em devolver o campo vazio, sem inventar valores. Na comparação, foram desconsideradas diferenças de maiúsculas, acentos e formatação; os telefones foram comparados pelos dígitos e a descrição clínica, pela presença dos termos essenciais. O conteúdo da guia, a transcrição do áudio e os valores esperados encontram-se no Apêndice C. Os tempos foram medidos a partir do computador de desenvolvimento e incluem o envio do arquivo pela internet e o processamento pelo Gemini. A @tab:extracao resume os resultados.
 
@@ -188,7 +188,7 @@ Para avaliar a extração, foi elaborada uma guia de solicitação fictícia, co
 
 Todos os campos foram extraídos corretamente nas 15 execuções, inclusive os vazios, e o tempo de resposta ficou entre 4,6 e 9,5 segundos, compatível com o uso durante a abertura de uma solicitação. Esses resultados indicam a viabilidade da abordagem, mas devem ser lidos com cautela: a guia utilizada é digitada e bem enquadrada, e o áudio foi gerado por voz sintética, sem ruído. Guias manuscritas, fotos com pouca luz ou inclinadas e áudios gravados em ambientes ruidosos tendem a reduzir a taxa de acerto, e o risco de alucinação apontado por Pal e Sankarasubbu (2024) não desaparece. Por isso, o sistema mantém a revisão obrigatória dos dados pelo usuário antes da criação da solicitação, e a avaliação com guias reais é indicada como trabalho futuro.
 
-#### 4.2.3 Problemas encontrados e correções
+#### 3.2.3 Problemas encontrados e correções
 
 Os testes revelaram problemas que não eram aparentes durante o desenvolvimento das funcionalidades isoladas. O @qua:correcoes reúne os principais, com a causa identificada e a correção aplicada.
 
@@ -203,52 +203,25 @@ Os testes revelaram problemas que não eram aparentes durante o desenvolvimento 
 | Solicitação podia ser concluída sem laudo, sem baixa de estoque | A atualização de status aceitava qualquer estado, inclusive Concluído | Concluído passou a ser atingido somente pela emissão do laudo; o status só avança, na interface e na API |
 {{/quadro}}
 
-O problema do estoque ilustra a importância dos testes de ponta a ponta: o desconto automático estava implementado e funcionava na API, mas, sem uma tela para configurar o consumo de cada exame, ele nunca seria acionado por um usuário real. A falha só foi percebida ao percorrer o fluxo completo pela interface. Já a possibilidade de concluir uma solicitação sem laudo foi identificada durante a preparação das telas para este documento; após a correção, foi criada a suíte de regras de status, para que o problema não volte a ocorrer.
+O problema do estoque ilustra a importância dos testes de ponta a ponta: o desconto automático estava implementado e funcionava na API, mas, sem uma tela para configurar o consumo de cada exame, ele nunca seria acionado por um usuário real. A falha só foi percebida ao percorrer o fluxo completo pela interface. Já a possibilidade de concluir uma solicitação sem laudo foi identificada durante a preparação das telas para este documento; após a correção, o roteiro de testes passou a verificar que a etapa Concluído não é oferecida na mudança de status, para que o problema não volte a ocorrer.
 
-#### 4.2.4 Validação com a patologista colaboradora
+#### 3.2.4 Avaliação com usuários
 
-[[DADOS ILUSTRATIVOS – a serem substituídos pelos resultados reais da coleta]]
+A avaliação com usuários, formada pelo terceiro e pelo quarto mecanismos descritos na seção 2.5, complementa os testes funcionais e a medição da extração com a percepção de quem trabalha no fluxo do laboratório. Como depende da publicação do sistema, descrita na seção 3.1.12, para que os participantes o acessem pelo navegador, essa avaliação encontra-se em andamento, e seus resultados serão incorporados ao trabalho assim que concluída.
 
-A validação foi realizada em uma sessão de cerca de uma hora com a médica veterinária patologista colaboradora, que utilizou o sistema publicado a partir de um roteiro de tarefas representativas da rotina do laboratório: configurar um tipo de exame com modelo de laudo e insumos consumidos, aprovar o vínculo de um veterinário, registrar uma solicitação a partir da foto de uma guia, acompanhar o status e emitir o laudo. Durante a sessão, a profissional comentou em voz alta suas impressões e, ao final, respondeu a uma entrevista sobre a adequação dos campos ao seu fluxo real, a clareza da interface, a utilidade da extração por IA e a percepção de redução de esforço em relação ao processo atual.
+Na validação com a médica veterinária patologista colaboradora, prevista para uma sessão de cerca de uma hora, a profissional utilizará o sistema a partir de um roteiro de tarefas representativas da rotina do laboratório: configurar um tipo de exame com modelo de laudo e insumos consumidos, aprovar o vínculo de um veterinário, registrar uma solicitação a partir da foto de uma guia, acompanhar o status e emitir o laudo. Durante a sessão, ela será convidada a comentar suas impressões em voz alta e, ao final, responderá a uma entrevista sobre a adequação dos campos ao seu fluxo real, a clareza da interface, a utilidade da extração por IA e a percepção de redução de esforço em relação ao processo atual.
 
-A profissional considerou os campos da solicitação adequados ao fluxo do laboratório e destacou a padronização das informações como o principal ganho em relação ao recebimento de pedidos por aplicativo de mensagens. Avaliou positivamente o preenchimento a partir da foto da guia, ressaltando que a revisão dos dados antes do envio é indispensável. Entre as sugestões, apontou a inclusão de um campo para o tipo de material enviado, como sangue, tecido ou material de punção, a possibilidade de anexar a imagem da guia à solicitação e a criação de contas separadas para a equipe do laboratório, registradas como trabalhos futuros na seção 4.3.
+O questionário do Apêndice A será aplicado por meio do Google Forms a patologistas e médicos veterinários da rede de contatos da colaboradora e do autor, que receberão o endereço do sistema e um roteiro curto de tarefas antes de responder. As respostas serão analisadas pela proporção de concordância (notas 4 e 5) e pela mediana de cada construto, conforme a seção 2.5, e os comentários das perguntas abertas serão agrupados por tema.
 
-#### 4.2.5 Questionário aplicado aos usuários
-
-[[DADOS ILUSTRATIVOS – a serem substituídos pelos resultados reais da coleta]]
-
-O questionário do Apêndice A foi aplicado por meio do Google Forms durante duas semanas, após a publicação do sistema, e divulgado a patologistas e médicos veterinários da rede de contatos da colaboradora e do autor. Antes de responder, cada participante recebeu o endereço do sistema e um roteiro curto de tarefas. Foram obtidas 15 respostas válidas, cujo perfil é apresentado na @tab:perfil-respondentes.
-
-{{tabela id="perfil-respondentes" titulo="Perfil dos respondentes do questionário (dados ilustrativos)" fonte="Dados ilustrativos (2026), a serem substituídos pelos dados da pesquisa." larguras="8,4,4"}}
-| Função | Respondentes | Percentual |
-| Patologista veterinário(a) | 4 | 26,7% |
-| Médico(a) veterinário(a) clínico(a) ou solicitante | 9 | 60,0% |
-| Outra função | 2 | 13,3% |
-| **Total** | **15** | **100%** |
-{{/tabela}}
-
-A @tab:respostas resume a concordância com as afirmações, agrupadas por construto. A concordância corresponde à proporção de respostas com notas 4 ("concordo") ou 5 ("concordo totalmente") no conjunto das afirmações de cada construto.
-
-{{tabela id="respostas" titulo="Concordância com as afirmações do questionário, por construto (dados ilustrativos)" fonte="Dados ilustrativos (2026), a serem substituídos pelos dados da pesquisa." larguras="5.5,3,4,3.5"}}
-| Construto | Afirmações | Concordância (notas 4 e 5) | Mediana |
-| Utilidade percebida | U1 a U4 | 85,0% | 5 |
-| Facilidade de uso percebida | F1 a F3 | 80,0% | 4 |
-| Entrada por IA | I1 a I3 | 77,8% | 4 |
-| Transparência e privacidade | T1 e T2 | 93,3% | 5 |
-| Intenção de uso | N1 e N2 | 83,3% | 4 |
-{{/tabela}}
-
-A transparência e a privacidade da consulta pública obtiveram a maior concordância (93,3%), seguidas da utilidade percebida (85,0%) e da intenção de uso (83,3%). O construto com menor concordância foi o da entrada por IA (77,8%), influenciado pela afirmação sobre o envio por áudio, que dividiu os participantes: parte deles relatou preferir a foto ou o PDF da guia. Nas perguntas abertas, os comentários mais frequentes destacaram a rapidez para abrir solicitações e a consulta por código, e as sugestões concentraram-se em avisos automáticos de mudança de status e em uma versão do sistema para instalar no celular.
-
-#### 4.2.6 Análise dos resultados
+#### 3.2.5 Análise dos resultados
 
 Em relação à padronização das informações, o sistema passou a exigir, em toda solicitação, os mesmos dados mínimos (tipo de exame, tutor, paciente e veterinário solicitante com CRMV válido), registrados de forma estruturada e reaproveitados nas solicitações seguintes do mesmo laboratório, o que reduz a dependência de mensagens livres para a abertura do pedido. O acompanhamento do exame deixou de depender de contatos individuais: cada mudança de status fica registrada com data e responsável, e o andamento pode ser consultado pelo código público.
 
 Quanto à qualidade da extração pelo Gemini, a medição realizada mostrou acerto em todos os campos da guia de teste nos três formatos, em poucos segundos, o que responde positivamente, dentro das limitações discutidas, à segunda questão de pesquisa. Os testes funcionais automatizados confirmaram ainda, pela interface, o isolamento entre laboratórios e o controle de acesso por perfil, requisitos essenciais para a operação de vários laboratórios na mesma plataforma, e a minimização dos dados expostos na consulta pública, relacionada à terceira questão de pesquisa.
 
-[[DADOS ILUSTRATIVOS – a serem substituídos pelos resultados reais da coleta]] A validação com a patologista colaboradora e o questionário indicam percepção favorável quanto à redução do esforço na abertura e no acompanhamento das solicitações e quanto à transparência do processo, o que sustenta, dentro dos limites de uma amostra pequena e não probabilística, a hipótese formulada e responde à primeira e à terceira questões de pesquisa. A menor concordância em relação ao envio por áudio sugere que esse canal deve ser oferecido como alternativa, e não como forma principal de solicitação.
+A primeira e a terceira questões de pesquisa tratam da redução do esforço operacional e da transparência percebidas por patologistas, solicitantes e tutores, e sua resposta completa depende da avaliação com usuários descrita na seção 3.2.4. Até aqui, os resultados sustentam a hipótese no que se refere à padronização das informações e à viabilidade da extração multimodal, e mostram que o sistema oferece os mecanismos previstos para dar transparência ao processo sem expor dados pessoais. A confirmação de que esses mecanismos reduzem o esforço e aumentam a transparência na percepção dos usuários depende, porém, dessa avaliação.
 
-### 4.3 Trabalhos futuros
+### 3.3 Trabalhos futuros
 
 A partir dos resultados obtidos e das limitações identificadas, propõem-se os seguintes trabalhos futuros:
 

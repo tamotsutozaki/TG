@@ -20,12 +20,12 @@ MLLM – Multimodal Large Language Model
 MP3 – MPEG Audio Layer III
 OCR – Optical Character Recognition
 ORM – Object-Relational Mapping
+OWASP – Open Worldwide Application Security Project
 PDF – Portable Document Format
 PNG – Portable Network Graphics
 REST – Representational State Transfer
 RF – Requisito Funcional
 RNF – Requisito Não Funcional
-RT – Responsável Técnico
 SaaS – Software as a Service
 SHA – Secure Hash Algorithm
 SPA – Single Page Application
