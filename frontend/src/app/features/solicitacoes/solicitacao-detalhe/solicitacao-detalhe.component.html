@@ -18,7 +18,7 @@
         @for (s of statusOrdem; track s; let i = $index) {
           <div class="status-step" [class.ativo]="i <= statusAtualIndex" [class.atual]="i === statusAtualIndex">
             <div class="step-dot">
-              @if (i < statusAtualIndex) { <mat-icon>check</mat-icon> }
+              @if (i < statusAtualIndex || (i === statusAtualIndex && i === statusOrdem.length - 1)) { <mat-icon>check</mat-icon> }
               @else { <span>{{ i + 1 }}</span> }
             </div>
             <span class="step-label">{{ statusLabel(s) }}</span>

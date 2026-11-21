@@ -429,6 +429,11 @@ def test_5_6_avanca_status(janelas):
     avancar_status(pg, "Aguardando Amostra", "Amostra de sangue solicitada ao veterinário")
     expect(aviso(pg)).to_contain_text("Status atualizado!")
     avancar_status(pg, "Amostra Recebida")
+    # Regra de status: só oferece etapas seguintes, e Concluído só é atingido pela emissão do laudo
+    campo(pg, "Avançar para").press("Enter")
+    expect(pg.locator(".cdk-overlay-pane mat-option")).to_have_text(["Em Análise"])
+    pg.keyboard.press("Escape")
+    expect(pg.locator(".cdk-overlay-pane mat-option")).to_have_count(0)
     avancar_status(pg, "Em Análise")
     expect(pg.locator(".status-step.ativo")).to_have_count(4)
     historico = pg.locator(".historico-item")
