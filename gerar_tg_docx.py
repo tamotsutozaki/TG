@@ -503,18 +503,20 @@ def main():
         linha_central(doc, l)
     doc.add_page_break()
 
-    # ---- RESUMO ----
-    resumo = [x.strip() for x in ler("00-resumo.md").split("\n\n") if x.strip()]
-    titulo_sem_numero(doc, "RESUMO", nova_pagina=False, toc=False)
-    for par in resumo:
-        p = doc.add_paragraph()
-        formatar(p, WD_ALIGN_PARAGRAPH.JUSTIFY, recuo=0, simples=True, depois=12)
-        if par.startswith("Palavras-chave:"):
-            _run(p, "Palavras-chave: ", bold=True)
-            escrever(p, par.split(":", 1)[1].strip())
-        else:
-            escrever(p, par)
-    doc.add_page_break()
+    # ---- RESUMO E ABSTRACT ----
+    for arquivo, titulo, rotulo in (("00-resumo.md", "RESUMO", "Palavras-chave:"),
+                                    ("00-abstract.md", "ABSTRACT", "Keywords:")):
+        paragrafos = [x.strip() for x in ler(arquivo).split("\n\n") if x.strip()]
+        titulo_sem_numero(doc, titulo, nova_pagina=False, toc=False)
+        for par in paragrafos:
+            p = doc.add_paragraph()
+            formatar(p, WD_ALIGN_PARAGRAPH.JUSTIFY, recuo=0, simples=True, depois=12)
+            if par.startswith(rotulo):
+                _run(p, rotulo + " ", bold=True)
+                escrever(p, par.split(":", 1)[1].strip())
+            else:
+                escrever(p, par)
+        doc.add_page_break()
 
     # ---- LISTAS ----
     for titulo, rotulo in (("LISTA DE FIGURAS", "Figura"), ("LISTA DE QUADROS", "Quadro"),
