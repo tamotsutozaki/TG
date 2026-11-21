@@ -115,7 +115,7 @@ public class LaudoService(
             Raca: paciente.Raca,
             Sexo: DescreverSexo(paciente.Sexo),
             Idade: idade,
-            Peso: paciente.PesoKg.HasValue ? $"{paciente.PesoKg:F2} kg" : null,
+            Peso: paciente.PesoKg.HasValue ? $"{paciente.PesoKg.Value.ToString("0.##", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))} kg" : null,
             TutorNome: tutor.Nome,
             VetSolicitanteNome: vet.Nome,
             CrmvNumero: vet.CrmvNumero,

@@ -66,7 +66,7 @@
         }
         <div class="info-item"><span class="label">Sexo</span><span>{{ sexoLabel[solicitacao.paciente.sexo] }}</span></div>
         @if (solicitacao.paciente.pesoKg) {
-          <div class="info-item"><span class="label">Peso</span><span>{{ solicitacao.paciente.pesoKg }} kg</span></div>
+          <div class="info-item"><span class="label">Peso</span><span>{{ solicitacao.paciente.pesoKg.toLocaleString('pt-BR') }} kg</span></div>
         }
         <mat-divider class="mt-1 mb-1"></mat-divider>
         <div class="info-item"><span class="label">Tutor</span><span>{{ solicitacao.tutor.nome }}</span></div>
