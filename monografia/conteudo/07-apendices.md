@@ -48,7 +48,7 @@ Intenção de uso:
 
 # APÊNDICE B – Roteiro de testes funcionais
 
-O autor elaborou um roteiro de 52 passos, organizados em 11 partes, para a verificação do sistema no navegador, com uma janela para cada perfil (administrador, laboratório e veterinário) e uma janela sem login para a consulta pública. O roteiro foi escrito para ser executado manualmente e, depois, automatizado integralmente, como descrito na seção 3.2.1. O @qua:roteiro resume as partes do roteiro e o que cada uma verifica.
+Foi elaborado um roteiro de 52 passos, organizados em 11 partes, para a verificação do sistema no navegador, com uma janela para cada perfil (administrador, laboratório e veterinário) e uma janela sem login para a consulta pública. O roteiro foi escrito para ser executado manualmente e, depois, automatizado integralmente, como descrito na seção 3.2.1. O @qua:roteiro resume as partes do roteiro e o que cada uma verifica.
 
 {{quadro id="roteiro" titulo="Partes do roteiro de testes funcionais" fonte="Elaborado pelo autor (2026)." larguras="5,11"}}
 | Parte | O que verifica |

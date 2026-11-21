@@ -142,7 +142,7 @@ A interface foi adaptada a telas estreitas: no celular, o menu lateral passa a a
 
 {{figura id="celular" arquivo="tela-celular.png" largura="14" titulo="Telas do sistema em um celular: consulta pública, solicitações e menu" fonte="Elaborado pelo autor (2026)."}}
 
-Durante o desenvolvimento, o sistema foi executado localmente, com o banco de dados no SQL Server LocalDB. Para a avaliação com usuários, a publicação foi planejada no Microsoft Azure, por meio do programa Azure for Students: o *frontend* no Azure Static Web Apps, a API no Azure App Service e o banco de dados no Azure SQL Database. Como as chaves, a conexão com o banco, o endereço autorizado do *frontend* e as credenciais do administrador são lidos da configuração, a publicação não exige alterações no código. A publicação será feita antes da avaliação com usuários, para que a patologista colaboradora e os participantes do questionário acessem o sistema pelo navegador, sem depender do computador do autor.
+Durante o desenvolvimento, o sistema foi executado localmente, com o banco de dados no SQL Server LocalDB. Para a avaliação com usuários, a publicação foi planejada no Microsoft Azure, por meio do programa Azure for Students: o *frontend* no Azure Static Web Apps, a API no Azure App Service e o banco de dados no Azure SQL Database. Como as chaves, a conexão com o banco, o endereço autorizado do *frontend* e as credenciais do administrador são lidos da configuração, a publicação não exige alterações no código. A publicação será feita antes da avaliação com usuários, para que a patologista colaboradora e os participantes do questionário acessem o sistema pelo navegador, sem depender de uma instalação local.
 
 ### 3.2 Implementação, avaliação e análise dos testes realizados
 

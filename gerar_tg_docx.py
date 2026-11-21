@@ -517,6 +517,12 @@ def main():
                 escrever(p, par.split(":", 1)[1].strip())
             else:
                 escrever(p, par)
+            if titulo == "ABSTRACT":
+                # marca o trecho como inglês para o corretor do Word não sublinhar
+                for r in p.runs:
+                    lang = OxmlElement("w:lang")
+                    lang.set(qn("w:val"), "en-US")
+                    r._element.get_or_add_rPr().append(lang)
         doc.add_page_break()
 
     # ---- LISTAS ----
