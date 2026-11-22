@@ -37,6 +37,7 @@ mat-nav-list {
     color: rgba(255,255,255,0.85);
     border-radius: 8px;
     margin: 2px 8px;
+    width: calc(100% - 16px); // a margem lateral não pode somar à largura (gerava rolagem horizontal no menu)
 
     mat-icon { color: rgba(255,255,255,0.7); }
 
