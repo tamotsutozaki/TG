@@ -13,6 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { confirmar } from '../../shared/confirmar-dialog.component';
 import { mensagemErro } from '../../shared/erros';
+import { LIMITE, casasDecimais, erroCampo, inteiro, obrigatorio } from '../../shared/validacao';
 import { InsumoService } from '../../core/services/insumo.service';
 import { InsumoDto } from '../../core/models/insumo.model';
 
@@ -28,24 +29,18 @@ import { InsumoDto } from '../../core/models/insumo.model';
       <form [formGroup]="form" class="form-col">
         <mat-form-field appearance="outline">
           <mat-label>Nome</mat-label>
-          <input matInput formControlName="nome">
-          @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) {
-            <mat-error>Obrigatório</mat-error>
-          }
+          <input matInput formControlName="nome" maxlength="100">
+          <mat-error>{{ erro(form.get('nome')) }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Unidade de Medida</mat-label>
-          <input matInput formControlName="unidadeMedida" placeholder="ex: unidade, mL, g">
-          @if (form.get('unidadeMedida')?.hasError('required') && form.get('unidadeMedida')?.touched) {
-            <mat-error>Obrigatório</mat-error>
-          }
+          <input matInput formControlName="unidadeMedida" placeholder="ex: unidade, mL, g" maxlength="20">
+          <mat-error>{{ erro(form.get('unidadeMedida')) }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Quantidade Mínima (alerta)</mat-label>
-          <input matInput formControlName="quantidadeMinima" type="number" min="0">
-          @if (form.get('quantidadeMinima')?.hasError('required') && form.get('quantidadeMinima')?.touched) {
-            <mat-error>Obrigatório</mat-error>
-          }
+          <input matInput formControlName="quantidadeMinima" type="number" min="0" step="1">
+          <mat-error>{{ erro(form.get('quantidadeMinima')) }}</mat-error>
         </mat-form-field>
       </form>
     </mat-dialog-content>
@@ -58,15 +53,16 @@ import { InsumoDto } from '../../core/models/insumo.model';
 })
 export class InsumoDialogComponent {
   form: FormGroup;
+  erro = erroCampo;
   constructor(
     private fb: FormBuilder,
     public ref: MatDialogRef<InsumoDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: InsumoDto | null
   ) {
     this.form = this.fb.group({
-      nome: [data?.nome ?? '', Validators.required],
-      unidadeMedida: [data?.unidadeMedida ?? '', Validators.required],
-      quantidadeMinima: [data?.quantidadeMinima ?? 0, [Validators.required, Validators.min(0)]]
+      nome: [data?.nome ?? '', [obrigatorio, Validators.maxLength(LIMITE.nomeItem)]],
+      unidadeMedida: [data?.unidadeMedida ?? '', [obrigatorio, Validators.maxLength(LIMITE.unidade)]],
+      quantidadeMinima: [data?.quantidadeMinima ?? 0, [Validators.required, casasDecimais(3), Validators.min(0), Validators.max(999999)]]
     });
   }
   salvar() {
@@ -90,10 +86,8 @@ export class InsumoDialogComponent {
       <form [formGroup]="form">
         <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Nova Quantidade</mat-label>
-          <input matInput formControlName="novaQuantidade" type="number" min="0">
-          @if (form.get('novaQuantidade')?.hasError('required') && form.get('novaQuantidade')?.touched) {
-            <mat-error>Obrigatório</mat-error>
-          }
+          <input matInput formControlName="novaQuantidade" type="number" min="0" step="1">
+          <mat-error>{{ erro(form.get('novaQuantidade')) }}</mat-error>
         </mat-form-field>
       </form>
     </mat-dialog-content>
@@ -105,13 +99,14 @@ export class InsumoDialogComponent {
 })
 export class AjustarQuantidadeDialogComponent {
   form: FormGroup;
+  erro = erroCampo;
   constructor(
     private fb: FormBuilder,
     public ref: MatDialogRef<AjustarQuantidadeDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: InsumoDto
   ) {
     this.form = this.fb.group({
-      novaQuantidade: [data.quantidadeAtual, [Validators.required, Validators.min(0)]]
+      novaQuantidade: [data.quantidadeAtual, [Validators.required, casasDecimais(3), Validators.min(0), Validators.max(999999)]]
     });
   }
   salvar() {

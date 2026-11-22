@@ -36,33 +36,38 @@
           </div>
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Nome do laboratório</mat-label>
-            <input matInput formControlName="nome">
+            <input matInput formControlName="nome" [maxlength]="limite.nomeLaboratorio">
+            <mat-error>{{ erro(formLaboratorio.get('nome')) }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Endereço (rua, número e bairro)</mat-label>
-            <input matInput formControlName="endereco">
+            <input matInput formControlName="endereco" [maxlength]="limite.endereco">
+            <mat-error>{{ erro(formLaboratorio.get('endereco')) }}</mat-error>
           </mat-form-field>
           <div class="linha">
             <mat-form-field appearance="outline" class="flex-2">
               <mat-label>Cidade</mat-label>
-              <input matInput formControlName="cidade">
+              <input matInput formControlName="cidade" [maxlength]="limite.cidade">
+            <mat-error>{{ erro(formLaboratorio.get('cidade')) }}</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>UF</mat-label>
               <mat-select formControlName="uf">
                 @for (uf of ufs; track uf) { <mat-option [value]="uf">{{ uf }}</mat-option> }
               </mat-select>
+              <mat-error>{{ erro(formLaboratorio.get('uf')) }}</mat-error>
             </mat-form-field>
           </div>
           <div class="linha">
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Telefone</mat-label>
-              <input matInput formControlName="telefone">
+              <input matInput formControlName="telefone" appTelefone inputmode="tel" maxlength="15">
+            <mat-error>{{ erro(formLaboratorio.get('telefone')) }}</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>E-mail de contato</mat-label>
-              <input matInput formControlName="email" type="email">
-              @if (formLaboratorio.get('email')?.hasError('email')) { <mat-error>E-mail inválido</mat-error> }
+              <input matInput formControlName="email" type="email" [maxlength]="limite.email">
+            <mat-error>{{ erro(formLaboratorio.get('email')) }}</mat-error>
             </mat-form-field>
           </div>
         </mat-card-content>
@@ -76,21 +81,21 @@
         <mat-card-content>
           <mat-form-field appearance="outline" class="w-100 mt-2">
             <mat-label>Nome completo</mat-label>
-            <input matInput formControlName="responsavelTecnicoNome">
+            <input matInput formControlName="responsavelTecnicoNome" [maxlength]="limite.nome">
+            <mat-error>{{ erro(formLaboratorio.get('responsavelTecnicoNome')) }}</mat-error>
           </mat-form-field>
           <div class="linha">
             <mat-form-field appearance="outline" class="flex-2">
               <mat-label>Nº do CRMV</mat-label>
-              <input matInput formControlName="responsavelTecnicoCrmvNumero" inputmode="numeric" maxlength="6">
-              @if (formLaboratorio.get('responsavelTecnicoCrmvNumero')?.hasError('pattern')) {
-                <mat-error>Apenas números (até 6 dígitos)</mat-error>
-              }
+              <input matInput formControlName="responsavelTecnicoCrmvNumero" inputmode="numeric" maxlength="6" appSoDigitos>
+            <mat-error>{{ erro(formLaboratorio.get('responsavelTecnicoCrmvNumero')) }}</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>UF do CRMV</mat-label>
               <mat-select formControlName="responsavelTecnicoCrmvEstado">
                 @for (uf of ufs; track uf) { <mat-option [value]="uf">{{ uf }}</mat-option> }
               </mat-select>
+              <mat-error>{{ erro(formLaboratorio.get('responsavelTecnicoCrmvEstado')) }}</mat-error>
             </mat-form-field>
           </div>
           <div class="acoes">
@@ -116,11 +121,13 @@
           <div class="linha">
             <mat-form-field appearance="outline" class="flex-2">
               <mat-label>Nome completo</mat-label>
-              <input matInput formControlName="nome">
+              <input matInput formControlName="nome" [maxlength]="limite.nome">
+            <mat-error>{{ erro(formVeterinario.get('nome')) }}</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Telefone</mat-label>
-              <input matInput formControlName="telefone">
+              <input matInput formControlName="telefone" appTelefone inputmode="tel" maxlength="15">
+            <mat-error>{{ erro(formVeterinario.get('telefone')) }}</mat-error>
             </mat-form-field>
           </div>
           <div class="acoes">
@@ -154,16 +161,18 @@
         <div class="linha mt-2">
           <mat-form-field appearance="outline" class="flex-1">
             <mat-label>Senha atual</mat-label>
-            <input matInput type="password" formControlName="senhaAtual" autocomplete="current-password">
+            <input matInput type="password" formControlName="senhaAtual" autocomplete="current-password" [maxlength]="limite.senha">
+            <mat-error>{{ erro(formSenha.get('senhaAtual')) }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline" class="flex-1">
             <mat-label>Nova senha</mat-label>
-            <input matInput type="password" formControlName="novaSenha" autocomplete="new-password">
-            @if (formSenha.get('novaSenha')?.hasError('minlength')) { <mat-error>Mínimo de 8 caracteres</mat-error> }
+            <input matInput type="password" formControlName="novaSenha" autocomplete="new-password" [maxlength]="limite.senha">
+            <mat-error>{{ erro(formSenha.get('novaSenha')) }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline" class="flex-1">
             <mat-label>Confirmar nova senha</mat-label>
-            <input matInput type="password" formControlName="confirmarSenha" autocomplete="new-password">
+            <input matInput type="password" formControlName="confirmarSenha" autocomplete="new-password" [maxlength]="limite.senha">
+            <mat-error>{{ erro(formSenha.get('confirmarSenha')) }}</mat-error>
           </mat-form-field>
         </div>
         @if (formSenha.hasError('senhasDiferentes') && formSenha.get('confirmarSenha')?.touched) {

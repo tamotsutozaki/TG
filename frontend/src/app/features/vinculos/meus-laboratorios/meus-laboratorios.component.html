@@ -49,7 +49,7 @@
     <form class="busca" (ngSubmit)="buscar()">
       <mat-form-field appearance="outline" class="campo-busca">
         <mat-label>Nome ou cidade</mat-label>
-        <input matInput [(ngModel)]="termo" name="termo">
+        <input matInput [(ngModel)]="termo" name="termo" maxlength="100">
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
       <button mat-stroked-button color="primary" type="submit">Buscar</button>

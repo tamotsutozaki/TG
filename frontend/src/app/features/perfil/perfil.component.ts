@@ -14,6 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PerfilService } from '../../core/services/perfil.service';
 import { PerfilLaboratorio, PerfilVeterinario } from '../../core/models/perfil.model';
 import { UFS, formatarCrmv, linkAbsoluto } from '../../shared/formatadores';
+import { LIMITE, MASCARAS, crmv, email, erroCampo, obrigatorio, soLetras, telefone } from '../../shared/validacao';
 
 function senhasIguais(group: AbstractControl): ValidationErrors | null {
   return group.get('novaSenha')?.value === group.get('confirmarSenha')?.value ? null : { senhasDiferentes: true };
@@ -25,7 +26,7 @@ function senhasIguais(group: AbstractControl): ValidationErrors | null {
   imports: [
     CommonModule, ReactiveFormsModule,
     MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule, ...MASCARAS
   ],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.scss'
@@ -38,6 +39,8 @@ export class PerfilComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   ufs = UFS;
+  erro = erroCampo;
+  limite = LIMITE;
   loading = true;
   salvando = false;
   trocandoSenha = false;
@@ -46,25 +49,25 @@ export class PerfilComponent implements OnInit {
   veterinario: PerfilVeterinario | null = null;
 
   formLaboratorio = this.fb.group({
-    nome: ['', Validators.required],
-    endereco: ['', Validators.required],
-    cidade: ['', Validators.required],
+    nome: ['', [obrigatorio, Validators.maxLength(LIMITE.nomeLaboratorio)]],
+    endereco: ['', [obrigatorio, Validators.maxLength(LIMITE.endereco)]],
+    cidade: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.cidade)]],
     uf: ['', Validators.required],
-    telefone: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    responsavelTecnicoNome: ['', Validators.required],
-    responsavelTecnicoCrmvNumero: ['', [Validators.required, Validators.pattern(/^\d{1,6}$/)]],
+    telefone: ['', [obrigatorio, telefone]],
+    email: ['', [obrigatorio, email, Validators.maxLength(LIMITE.email)]],
+    responsavelTecnicoNome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
+    responsavelTecnicoCrmvNumero: ['', [obrigatorio, crmv]],
     responsavelTecnicoCrmvEstado: ['', Validators.required]
   });
 
   formVeterinario = this.fb.group({
-    nome: ['', Validators.required],
-    telefone: ['']
+    nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
+    telefone: ['', telefone]
   });
 
   formSenha = this.fb.group({
     senhaAtual: ['', Validators.required],
-    novaSenha: ['', [Validators.required, Validators.minLength(8)]],
+    novaSenha: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(LIMITE.senha)]],
     confirmarSenha: ['', Validators.required]
   }, { validators: senhasIguais });
 

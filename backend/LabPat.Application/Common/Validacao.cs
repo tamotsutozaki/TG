@@ -39,6 +39,16 @@ public static class Validacao
             throw new RegraNegocioException($"A senha deve ter pelo menos {TamanhoMinimoSenha} caracteres.");
     }
 
+    /// <summary>
+    /// Lança RegraNegocioException se o número estiver fora da faixa (evita estourar a precisão
+    /// das colunas do banco e devolve uma mensagem clara em vez de erro 500).
+    /// </summary>
+    public static void Faixa(decimal? valor, decimal minimo, decimal maximo, string campo)
+    {
+        if (valor is decimal v && (v < minimo || v > maximo))
+            throw new RegraNegocioException($"{campo} deve estar entre {minimo:0.###} e {maximo:0.###}.");
+    }
+
     /// <summary>Lança RegraNegocioException se o campo obrigatório estiver vazio.</summary>
     public static string Obrigatorio(string? valor, string campo) =>
         string.IsNullOrWhiteSpace(valor)

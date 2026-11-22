@@ -169,12 +169,13 @@ def test_2_2_validacoes_do_cadastro(janelas):
     campo(pg, "CNPJ").click()
     expect(pg.get_by_text("Mínimo de 8 caracteres")).to_be_visible()
     expect(pg.get_by_text("As senhas não conferem.")).to_be_visible()
-    # CNPJ com dígito verificador errado: recusado pela API ao enviar
+    # CNPJ com dígito verificador errado: recusado no próprio campo, antes de enviar
     campo(pg, "CNPJ").fill("11.222.333/0001-00")
     campo(pg, "Senha").fill(SENHA)
     campo(pg, "Confirmar senha").fill(SENHA)
     botao(pg, "Cadastrar laboratório").click()
-    expect(pg.locator(".erro-msg")).to_have_text("CNPJ inválido.")
+    expect(pg.locator("mat-form-field").filter(has_text="CNPJ").locator("mat-error")).to_have_text("CNPJ inválido")
+    expect(pg.get_by_role("heading", name="Laboratório cadastrado!")).to_have_count(0)
 
 
 def test_2_3_cadastra_alfa(janelas):

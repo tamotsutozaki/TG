@@ -14,13 +14,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConviteInfo } from '../../../core/models/auth.model';
 import { UFS, normalizarCnpj } from '../../../shared/formatadores';
+import { LIMITE, MASCARAS, cnpj, crmv, email, erroCampo, obrigatorio, soLetras, telefone } from '../../../shared/validacao';
 
 // CNPJ numérico ou alfanumérico: 12 caracteres + 2 dígitos (os dígitos são conferidos pela API)
-function cnpjFormato(control: AbstractControl): ValidationErrors | null {
-  const v = normalizarCnpj(control.value);
-  return !v || /^[A-Z0-9]{12}\d{2}$/.test(v) ? null : { cnpj: true };
-}
-
 function senhasIguais(group: AbstractControl): ValidationErrors | null {
   return group.get('senha')?.value === group.get('confirmarSenha')?.value ? null : { senhasDiferentes: true };
 }
@@ -31,7 +27,7 @@ function senhasIguais(group: AbstractControl): ValidationErrors | null {
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink,
     MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule, ...MASCARAS
   ],
   template: `
     <div class="cadastro-container">
@@ -63,37 +59,42 @@ function senhasIguais(group: AbstractControl): ValidationErrors | null {
           </mat-card-header>
 
           <mat-card-content>
-            <form [formGroup]="form" (ngSubmit)="enviar()" class="form">
+            <form [formGroup]="form" (ngSubmit)="enviar()" class="form" novalidate>
               <h3>Laboratório</h3>
               <mat-form-field appearance="outline">
                 <mat-label>Nome do laboratório</mat-label>
-                <input matInput formControlName="nome" />
+                <input matInput formControlName="nome" [maxlength]="limite.nomeLaboratorio" />
+                <mat-error>{{ erro(form.get('nome')) }}</mat-error>
               </mat-form-field>
               <div class="linha">
                 <mat-form-field appearance="outline" class="flex-2">
                   <mat-label>CNPJ</mat-label>
-                  <input matInput formControlName="cnpj" placeholder="00.000.000/0000-00" maxlength="18" />
-                  @if (form.get('cnpj')?.hasError('cnpj')) { <mat-error>CNPJ incompleto</mat-error> }
+                  <input matInput formControlName="cnpj" appCnpj placeholder="00.000.000/0000-00" maxlength="18" />
+                  <mat-error>{{ erro(form.get('cnpj')) }}</mat-error>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="flex-1">
                   <mat-label>Telefone</mat-label>
-                  <input matInput formControlName="telefone" />
+                  <input matInput formControlName="telefone" appTelefone inputmode="tel" placeholder="(19) 3333-4444" maxlength="15" />
+                  <mat-error>{{ erro(form.get('telefone')) }}</mat-error>
                 </mat-form-field>
               </div>
               <mat-form-field appearance="outline">
                 <mat-label>Endereço (rua, número e bairro)</mat-label>
-                <input matInput formControlName="endereco" />
+                <input matInput formControlName="endereco" [maxlength]="limite.endereco" />
+                <mat-error>{{ erro(form.get('endereco')) }}</mat-error>
               </mat-form-field>
               <div class="linha">
                 <mat-form-field appearance="outline" class="flex-2">
                   <mat-label>Cidade</mat-label>
-                  <input matInput formControlName="cidade" />
+                  <input matInput formControlName="cidade" [maxlength]="limite.cidade" />
+                  <mat-error>{{ erro(form.get('cidade')) }}</mat-error>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="flex-1">
                   <mat-label>UF</mat-label>
                   <mat-select formControlName="uf">
                     @for (uf of ufs; track uf) { <mat-option [value]="uf">{{ uf }}</mat-option> }
                   </mat-select>
+                  <mat-error>{{ erro(form.get('uf')) }}</mat-error>
                 </mat-form-field>
               </div>
 
@@ -101,21 +102,21 @@ function senhasIguais(group: AbstractControl): ValidationErrors | null {
               <p class="ajuda">É quem assina os laudos emitidos pelo laboratório.</p>
               <mat-form-field appearance="outline">
                 <mat-label>Nome completo</mat-label>
-                <input matInput formControlName="responsavelTecnicoNome" />
+                <input matInput formControlName="responsavelTecnicoNome" [maxlength]="limite.nome" />
+                <mat-error>{{ erro(form.get('responsavelTecnicoNome')) }}</mat-error>
               </mat-form-field>
               <div class="linha">
                 <mat-form-field appearance="outline" class="flex-2">
                   <mat-label>Nº do CRMV</mat-label>
-                  <input matInput formControlName="responsavelTecnicoCrmvNumero" inputmode="numeric" maxlength="6" />
-                  @if (form.get('responsavelTecnicoCrmvNumero')?.hasError('pattern')) {
-                    <mat-error>Apenas números (até 6 dígitos)</mat-error>
-                  }
+                  <input matInput formControlName="responsavelTecnicoCrmvNumero" appSoDigitos inputmode="numeric" maxlength="6" />
+                  <mat-error>{{ erro(form.get('responsavelTecnicoCrmvNumero')) }}</mat-error>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="flex-1">
                   <mat-label>UF do CRMV</mat-label>
                   <mat-select formControlName="responsavelTecnicoCrmvEstado">
                     @for (uf of ufs; track uf) { <mat-option [value]="uf">{{ uf }}</mat-option> }
                   </mat-select>
+                  <mat-error>{{ erro(form.get('responsavelTecnicoCrmvEstado')) }}</mat-error>
                 </mat-form-field>
               </div>
 
@@ -123,25 +124,26 @@ function senhasIguais(group: AbstractControl): ValidationErrors | null {
               <p class="ajuda">Um único acesso para o laboratório. O e-mail também aparece nos laudos.</p>
               <mat-form-field appearance="outline">
                 <mat-label>E-mail</mat-label>
-                <input matInput type="email" formControlName="email" autocomplete="email" />
-                @if (form.get('email')?.hasError('email')) { <mat-error>E-mail inválido</mat-error> }
+                <input matInput type="email" formControlName="email" autocomplete="email" [maxlength]="limite.email" />
+                <mat-error>{{ erro(form.get('email')) }}</mat-error>
               </mat-form-field>
               <div class="linha">
                 <mat-form-field appearance="outline" class="flex-1">
                   <mat-label>Senha</mat-label>
-                  <input matInput type="password" formControlName="senha" autocomplete="new-password" />
-                  @if (form.get('senha')?.hasError('minlength')) { <mat-error>Mínimo de 8 caracteres</mat-error> }
+                  <input matInput type="password" formControlName="senha" autocomplete="new-password" [maxlength]="limite.senha" />
+                  <mat-error>{{ erro(form.get('senha')) }}</mat-error>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="flex-1">
                   <mat-label>Confirmar senha</mat-label>
-                  <input matInput type="password" formControlName="confirmarSenha" autocomplete="new-password" />
+                  <input matInput type="password" formControlName="confirmarSenha" autocomplete="new-password" [maxlength]="limite.senha" />
+                  <mat-error>{{ erro(form.get('confirmarSenha')) }}</mat-error>
                 </mat-form-field>
               </div>
               @if (form.hasError('senhasDiferentes') && form.get('confirmarSenha')?.touched) {
                 <p class="erro-msg">As senhas não conferem.</p>
               }
 
-              @if (erro) { <p class="erro-msg">{{ erro }}</p> }
+              @if (erroApi) { <p class="erro-msg">{{ erroApi }}</p> }
 
               <button mat-flat-button color="primary" type="submit" [disabled]="enviando">
                 @if (enviando) { <mat-spinner diameter="20"></mat-spinner> }
@@ -187,20 +189,22 @@ export class CadastroLaboratorioComponent implements OnInit {
   erroConvite = '';
   enviando = false;
   cadastrado = false;
-  erro = '';
+  erroApi = '';
+  erro = erroCampo;
+  limite = LIMITE;
 
   form = inject(FormBuilder).group({
-    nome: ['', Validators.required],
-    cnpj: ['', [Validators.required, cnpjFormato]],
-    telefone: ['', Validators.required],
-    endereco: ['', Validators.required],
-    cidade: ['', Validators.required],
+    nome: ['', [obrigatorio, Validators.maxLength(LIMITE.nomeLaboratorio)]],
+    cnpj: ['', [obrigatorio, cnpj]],
+    telefone: ['', [obrigatorio, telefone]],
+    endereco: ['', [obrigatorio, Validators.maxLength(LIMITE.endereco)]],
+    cidade: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.cidade)]],
     uf: ['', Validators.required],
-    responsavelTecnicoNome: ['', Validators.required],
-    responsavelTecnicoCrmvNumero: ['', [Validators.required, Validators.pattern(/^\d{1,6}$/)]],
+    responsavelTecnicoNome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
+    responsavelTecnicoCrmvNumero: ['', [obrigatorio, crmv]],
     responsavelTecnicoCrmvEstado: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(8)]],
+    email: ['', [obrigatorio, email, Validators.maxLength(LIMITE.email)]],
+    senha: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(LIMITE.senha)]],
     confirmarSenha: ['', Validators.required]
   }, { validators: senhasIguais });
 
@@ -224,14 +228,14 @@ export class CadastroLaboratorioComponent implements OnInit {
   enviar() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.enviando = true;
-    this.erro = '';
+    this.erroApi = '';
 
     const { confirmarSenha, ...dados } = this.form.getRawValue();
     this.auth.registrarLaboratorio({ ...(dados as any), token: this.token }).subscribe({
       next: () => { this.enviando = false; this.cadastrado = true; },
       error: err => {
         this.enviando = false;
-        this.erro = err?.error?.message ?? 'Não foi possível concluir o cadastro.';
+        this.erroApi = err?.error?.message ?? 'Não foi possível concluir o cadastro.';
       }
     });
   }

@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { UFS } from '../../../shared/formatadores';
+import { LIMITE, MASCARAS, crmv, email, erroCampo, obrigatorio, soLetras, telefone } from '../../../shared/validacao';
 
 @Component({
   selector: 'app-registro',
@@ -18,7 +19,7 @@ import { UFS } from '../../../shared/formatadores';
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink,
     MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule, ...MASCARAS
   ],
   template: `
     <div class="registro-container">
@@ -43,35 +44,30 @@ import { UFS } from '../../../shared/formatadores';
           </mat-card-header>
 
           <mat-card-content>
-            <form [formGroup]="form" (ngSubmit)="enviar()" class="form">
+            <form [formGroup]="form" (ngSubmit)="enviar()" class="form" novalidate>
               <mat-form-field appearance="outline">
                 <mat-label>Nome completo</mat-label>
-                <input matInput formControlName="nome" />
+                <input matInput formControlName="nome" [maxlength]="limite.nome" />
+                <mat-error>{{ erro(form.get('nome')) }}</mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>E-mail</mat-label>
-                <input matInput type="email" formControlName="email" />
-                @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
-                  <mat-error>E-mail inválido</mat-error>
-                }
+                <input matInput type="email" formControlName="email" [maxlength]="limite.email" />
+                <mat-error>{{ erro(form.get('email')) }}</mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Senha</mat-label>
-                <input matInput type="password" formControlName="senha" />
-                @if (form.get('senha')?.hasError('minlength') && form.get('senha')?.touched) {
-                  <mat-error>Mínimo de 8 caracteres</mat-error>
-                }
+                <input matInput type="password" formControlName="senha" [maxlength]="limite.senha" />
+                <mat-error>{{ erro(form.get('senha')) }}</mat-error>
               </mat-form-field>
 
               <div class="crmv-row">
                 <mat-form-field appearance="outline" class="crmv-numero">
                   <mat-label>Nº do CRMV</mat-label>
-                  <input matInput formControlName="crmvNumero" inputmode="numeric" maxlength="6" />
-                  @if (form.get('crmvNumero')?.hasError('pattern') && form.get('crmvNumero')?.touched) {
-                    <mat-error>Apenas números (até 6 dígitos)</mat-error>
-                  }
+                  <input matInput formControlName="crmvNumero" appSoDigitos inputmode="numeric" maxlength="6" />
+                  <mat-error>{{ erro(form.get('crmvNumero')) }}</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="crmv-uf">
@@ -81,15 +77,17 @@ import { UFS } from '../../../shared/formatadores';
                       <mat-option [value]="uf">{{ uf }}</mat-option>
                     }
                   </mat-select>
+                  <mat-error>{{ erro(form.get('crmvEstado')) }}</mat-error>
                 </mat-form-field>
               </div>
 
               <mat-form-field appearance="outline">
                 <mat-label>Telefone (opcional)</mat-label>
-                <input matInput formControlName="telefone" />
+                <input matInput formControlName="telefone" appTelefone inputmode="tel" placeholder="(19) 99999-1111" maxlength="15" />
+                <mat-error>{{ erro(form.get('telefone')) }}</mat-error>
               </mat-form-field>
 
-              @if (erro) { <p class="erro">{{ erro }}</p> }
+              @if (erroApi) { <p class="erro">{{ erroApi }}</p> }
 
               <button mat-flat-button color="primary" type="submit"
                       [disabled]="form.invalid || enviando">
@@ -130,7 +128,9 @@ export class RegistroComponent {
   form: FormGroup;
   enviando = false;
   enviado = false;
-  erro = '';
+  erroApi = '';
+  erro = erroCampo;
+  limite = LIMITE;
 
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
@@ -140,24 +140,24 @@ export class RegistroComponent {
 
   constructor() {
     this.form = this.fb.group({
-      nome: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      senha: ['', [Validators.required, Validators.minLength(8)]],
-      crmvNumero: ['', [Validators.required, Validators.pattern(/^\d{1,6}$/)]],
+      nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
+      email: ['', [obrigatorio, email, Validators.maxLength(LIMITE.email)]],
+      senha: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(LIMITE.senha)]],
+      crmvNumero: ['', [obrigatorio, crmv]],
       crmvEstado: ['', Validators.required],
-      telefone: ['']
+      telefone: ['', telefone]
     });
   }
 
   enviar() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.enviando = true;
-    this.erro = '';
+    this.erroApi = '';
     this.auth.registrar(this.form.value).subscribe({
       next: () => { this.enviando = false; this.enviado = true; },
       error: err => {
         this.enviando = false;
-        this.erro = err?.error?.message ?? 'Não foi possível concluir o cadastro.';
+        this.erroApi = err?.error?.message ?? 'Não foi possível concluir o cadastro.';
       }
     });
   }

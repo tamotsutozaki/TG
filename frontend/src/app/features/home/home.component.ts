@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
+import { CodigoMascaraDirective } from '../../shared/validacao';
 
 @Component({
   selector: 'app-home',
@@ -19,7 +20,8 @@ import { AuthService } from '../../core/services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    CodigoMascaraDirective
   ],
   template: `
     <div class="home-container">
@@ -51,8 +53,8 @@ import { AuthService } from '../../core/services/auth.service';
             <form class="consulta-form" (ngSubmit)="consultar()">
               <mat-form-field appearance="outline" class="codigo-field">
                 <mat-label>Código do exame</mat-label>
-                <input matInput [(ngModel)]="codigo" name="codigo"
-                       placeholder="Ex.: ABC123" (keyup.enter)="consultar()" />
+                <input matInput [(ngModel)]="codigo" name="codigo" appCodigo maxlength="12"
+                       placeholder="Ex.: 4AYK85T3" autocomplete="off" (keyup.enter)="consultar()" />
                 <mat-icon matPrefix>qr_code_2</mat-icon>
               </mat-form-field>
               <button mat-flat-button color="primary" type="submit"

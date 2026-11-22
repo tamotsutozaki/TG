@@ -48,9 +48,10 @@ public class TipoExameService(
 
     public async Task<TipoExameDto> CreateAsync(CreateTipoExameInput input)
     {
+        Validacao.Faixa(input.PrazoEstimadoDias, 1, 365, "O prazo estimado (dias)");
         var tipo = new TipoExame
         {
-            Nome = input.Nome,
+            Nome = Validacao.Obrigatorio(input.Nome, "o nome do tipo de exame"),
             Descricao = input.Descricao,
             PrazoEstimadoDias = input.PrazoEstimadoDias
         };
@@ -66,7 +67,8 @@ public class TipoExameService(
         var tipo = await tipoExameRepository.GetByIdAsync(id);
         if (tipo is null) return null;
 
-        tipo.Nome = input.Nome;
+        Validacao.Faixa(input.PrazoEstimadoDias, 1, 365, "O prazo estimado (dias)");
+        tipo.Nome = Validacao.Obrigatorio(input.Nome, "o nome do tipo de exame");
         tipo.Descricao = input.Descricao;
         tipo.PrazoEstimadoDias = input.PrazoEstimadoDias;
         tipo.Ativo = input.Ativo;
@@ -121,6 +123,7 @@ public class TipoExameService(
 
         if (input.QuantidadeConsumida <= 0)
             throw new RegraNegocioException("A quantidade consumida deve ser maior que zero.");
+        Validacao.Faixa(input.QuantidadeConsumida, 0.001m, 99999m, "A quantidade consumida");
 
         var vinculo = tipo.ExameInsumos.FirstOrDefault(ei => ei.InsumoId == input.InsumoId);
 

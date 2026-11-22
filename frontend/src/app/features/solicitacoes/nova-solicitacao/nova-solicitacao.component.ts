@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { UFS } from '../../../shared/formatadores';
+import { LIMITE, MASCARAS, casasDecimais, crmv, email, erroCampo, formatarTelefone, inteiro, obrigatorio, soLetras, telefone } from '../../../shared/validacao';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -28,13 +29,15 @@ import { MeuVinculo } from '../../../core/models/vinculo.model';
     CommonModule, ReactiveFormsModule, FormsModule, RouterLink,
     MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatButtonToggleModule, MatDividerModule, MatSnackBarModule
+    MatButtonToggleModule, MatDividerModule, MatSnackBarModule, ...MASCARAS
   ],
   templateUrl: './nova-solicitacao.component.html',
   styleUrl: './nova-solicitacao.component.scss'
 })
 export class NovaSolicitacaoComponent implements OnInit {
   ufs = UFS;
+  erro = erroCampo;
+  limite = LIMITE;
   form: FormGroup;
   tiposExame: TipoExameDto[] = [];
   // Veterinário: laboratórios com vínculo aprovado (destino da solicitação)
@@ -59,27 +62,27 @@ export class NovaSolicitacaoComponent implements OnInit {
     this.form = this.fb.group({
       laboratorioId: [null as number | null],
       tipoExameId: [null, Validators.required],
-      descricaoClinica: [''],
+      descricaoClinica: ['', Validators.maxLength(LIMITE.descricaoClinica)],
       vetSolicitante: this.fb.group({
-        nome: ['', Validators.required],
-        crmvNumero: ['', [Validators.required, Validators.pattern(/^\d{1,6}$/)]],
+        nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
+        crmvNumero: ['', [obrigatorio, crmv]],
         crmvEstado: ['', Validators.required],
-        email: ['', Validators.email],
-        telefone: ['']
+        email: ['', [email, Validators.maxLength(LIMITE.email)]],
+        telefone: ['', telefone]
       }),
       tutor: this.fb.group({
-        nome: ['', Validators.required],
-        telefone: ['', Validators.required],
-        email: ['', Validators.email]
+        nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
+        telefone: ['', [obrigatorio, telefone]],
+        email: ['', [email, Validators.maxLength(LIMITE.email)]]
       }),
       paciente: this.fb.group({
-        nome: ['', Validators.required],
-        especie: ['', Validators.required],
-        raca: [''],
+        nome: ['', [obrigatorio, Validators.maxLength(LIMITE.nome)]],
+        especie: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.especie)]],
+        raca: ['', [soLetras, Validators.maxLength(LIMITE.raca)]],
         sexo: ['NaoInformado'],
-        idadeAnos: [null, [Validators.min(0), Validators.max(40)]],
-        idadeMeses: [null, [Validators.min(0), Validators.max(11)]],
-        pesoKg: [null, [Validators.min(0.01), Validators.max(1500)]]
+        idadeAnos: [null, [inteiro, Validators.min(0), Validators.max(40)]],
+        idadeMeses: [null, [inteiro, Validators.min(0), Validators.max(11)]],
+        pesoKg: [null, [casasDecimais(2), Validators.min(0.01), Validators.max(1500)]]
       })
     });
   }
@@ -146,12 +149,12 @@ export class NovaSolicitacaoComponent implements OnInit {
   private preencherFormulario(dados: any) {
     const set = (path: string, val: any) => { if (val) this.form.get(path)?.setValue(val); };
     set('vetSolicitante.nome', dados.vetNome);
-    set('vetSolicitante.crmvNumero', dados.vetCrmvNumero);
+    set('vetSolicitante.crmvNumero', dados.vetCrmvNumero?.replace(/\D/g, ''));
     set('vetSolicitante.crmvEstado', dados.vetCrmvEstado?.trim().toUpperCase());
     set('vetSolicitante.email', dados.vetEmail);
-    set('vetSolicitante.telefone', dados.vetTelefone);
+    set('vetSolicitante.telefone', formatarTelefone(dados.vetTelefone));
     set('tutor.nome', dados.tutorNome);
-    set('tutor.telefone', dados.tutorTelefone);
+    set('tutor.telefone', formatarTelefone(dados.tutorTelefone));
     set('tutor.email', dados.tutorEmail);
     set('paciente.nome', dados.pacienteNome);
     set('paciente.especie', dados.especie);

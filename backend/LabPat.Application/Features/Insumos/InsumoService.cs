@@ -1,3 +1,4 @@
+using LabPat.Application.Common;
 using LabPat.Domain.Entities;
 using LabPat.Domain.Interfaces;
 
@@ -21,10 +22,11 @@ public class InsumoService(
 
     public async Task<InsumoDto> CreateAsync(CreateInsumoInput input)
     {
+        Validacao.Faixa(input.QuantidadeMinima, 0, 999999, "A quantidade mínima");
         var insumo = new Insumo
         {
-            Nome = input.Nome,
-            UnidadeMedida = input.UnidadeMedida,
+            Nome = Validacao.Obrigatorio(input.Nome, "o nome do insumo"),
+            UnidadeMedida = Validacao.Obrigatorio(input.UnidadeMedida, "a unidade de medida"),
             QuantidadeMinima = input.QuantidadeMinima,
             QuantidadeAtual = 0
         };
@@ -40,8 +42,9 @@ public class InsumoService(
         var insumo = await insumoRepository.GetByIdAsync(id);
         if (insumo is null) return null;
 
-        insumo.Nome = input.Nome;
-        insumo.UnidadeMedida = input.UnidadeMedida;
+        Validacao.Faixa(input.QuantidadeMinima, 0, 999999, "A quantidade mínima");
+        insumo.Nome = Validacao.Obrigatorio(input.Nome, "o nome do insumo");
+        insumo.UnidadeMedida = Validacao.Obrigatorio(input.UnidadeMedida, "a unidade de medida");
         insumo.QuantidadeMinima = input.QuantidadeMinima;
         insumo.Ativo = input.Ativo;
 
@@ -68,6 +71,7 @@ public class InsumoService(
         var insumo = await insumoRepository.GetByIdAsync(id);
         if (insumo is null) return null;
 
+        Validacao.Faixa(input.NovaQuantidade, 0, 999999, "A quantidade");
         insumo.QuantidadeAtual = input.NovaQuantidade;
         insumoRepository.Update(insumo);
         await unitOfWork.CommitAsync();

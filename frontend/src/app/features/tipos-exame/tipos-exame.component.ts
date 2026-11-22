@@ -19,6 +19,7 @@ import { InsumoService } from '../../core/services/insumo.service';
 import { ExameInsumoDto, TipoExameDetalhadoDto, TipoExameDto } from '../../core/models/tipo-exame.model';
 import { InsumoDto } from '../../core/models/insumo.model';
 import { confirmar } from '../../shared/confirmar-dialog.component';
+import { LIMITE, casasDecimais, erroCampo, inteiro, obrigatorio } from '../../shared/validacao';
 import { mensagemErro } from '../../shared/erros';
 
 // ── Dialog: Criar/Editar Tipo de Exame ──────────────────────────────────────
@@ -33,21 +34,18 @@ import { mensagemErro } from '../../shared/erros';
       <form [formGroup]="form" class="form-col">
         <mat-form-field appearance="outline">
           <mat-label>Nome</mat-label>
-          <input matInput formControlName="nome">
-          @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) {
-            <mat-error>Obrigatório</mat-error>
-          }
+          <input matInput formControlName="nome" maxlength="100">
+          <mat-error>{{ erro(form.get('nome')) }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Descrição (opcional)</mat-label>
-          <textarea matInput formControlName="descricao" rows="2"></textarea>
+          <textarea matInput formControlName="descricao" rows="2" maxlength="300"></textarea>
+          <mat-error>{{ erro(form.get('descricao')) }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Prazo Estimado (dias)</mat-label>
-          <input matInput formControlName="prazoEstimadoDias" type="number" min="1">
-          @if (form.get('prazoEstimadoDias')?.hasError('required') && form.get('prazoEstimadoDias')?.touched) {
-            <mat-error>Obrigatório</mat-error>
-          }
+          <input matInput formControlName="prazoEstimadoDias" type="number" min="1" step="1" max="365">
+          <mat-error>{{ erro(form.get('prazoEstimadoDias')) }}</mat-error>
         </mat-form-field>
       </form>
     </mat-dialog-content>
@@ -60,15 +58,17 @@ import { mensagemErro } from '../../shared/erros';
 })
 export class TipoExameDialogComponent {
   form: FormGroup;
+  erro = erroCampo;
+  limite = LIMITE;
   constructor(
     private fb: FormBuilder,
     public ref: MatDialogRef<TipoExameDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: TipoExameDto | null
   ) {
     this.form = this.fb.group({
-      nome: [data?.nome ?? '', Validators.required],
-      descricao: [data?.descricao ?? ''],
-      prazoEstimadoDias: [data?.prazoEstimadoDias ?? 5, [Validators.required, Validators.min(1)]]
+      nome: [data?.nome ?? '', [obrigatorio, Validators.maxLength(LIMITE.nomeItem)]],
+      descricao: [data?.descricao ?? '', Validators.maxLength(LIMITE.descricaoCurta)],
+      prazoEstimadoDias: [data?.prazoEstimadoDias ?? 5, [Validators.required, inteiro, Validators.min(1), Validators.max(365)]]
     });
   }
   salvar() {
@@ -104,10 +104,8 @@ export class TipoExameDialogComponent {
         <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Conteúdo</mat-label>
           <textarea matInput formControlName="conteudo" rows="6"
-            placeholder="Estrutura padrão do laudo..."></textarea>
-          @if (form.get('conteudo')?.hasError('required') && form.get('conteudo')?.touched) {
-            <mat-error>Obrigatório</mat-error>
-          }
+            placeholder="Estrutura padrão do laudo..." [maxlength]="limite.laudo"></textarea>
+          <mat-error>{{ erro(form.get('conteudo')) }}</mat-error>
         </mat-form-field>
       </form>
     </mat-dialog-content>
@@ -127,6 +125,8 @@ export class TipoExameDialogComponent {
 })
 export class TemplatesDialogComponent {
   form: FormGroup;
+  erro = erroCampo;
+  limite = LIMITE;
   salvando = false;
   constructor(
     private fb: FormBuilder,
@@ -135,7 +135,7 @@ export class TemplatesDialogComponent {
     private service: TipoExameService,
     private snack: MatSnackBar
   ) {
-    this.form = this.fb.group({ conteudo: ['', Validators.required] });
+    this.form = this.fb.group({ conteudo: ['', [obrigatorio, Validators.maxLength(LIMITE.laudo)]] });
   }
   addTemplate() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
@@ -189,6 +189,7 @@ export class TemplatesDialogComponent {
           <mat-form-field appearance="outline" class="campo-qtd">
             <mat-label>Qtd. por exame</mat-label>
             <input matInput type="number" min="0" step="0.1" formControlName="quantidadeConsumida">
+            <mat-error>{{ erro(form.get('quantidadeConsumida')) }}</mat-error>
           </mat-form-field>
         </form>
         <p class="ajuda">Se o insumo já estiver vinculado, a quantidade é atualizada.</p>
@@ -213,6 +214,8 @@ export class TemplatesDialogComponent {
 })
 export class InsumosExameDialogComponent {
   form: FormGroup;
+  erro = erroCampo;
+  limite = LIMITE;
   salvando = false;
   vinculados: ExameInsumoDto[];
   constructor(
@@ -224,7 +227,7 @@ export class InsumosExameDialogComponent {
     this.vinculados = [...data.tipo.insumos];
     this.form = this.fb.group({
       insumoId: [null, Validators.required],
-      quantidadeConsumida: [1, [Validators.required, Validators.min(0.001)]]
+      quantidadeConsumida: [1, [Validators.required, casasDecimais(3), Validators.min(0.001), Validators.max(99999)]]
     });
   }
   vincular() {

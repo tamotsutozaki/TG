@@ -9,7 +9,7 @@
       <form [formGroup]="form" (ngSubmit)="entrar()">
         <mat-form-field appearance="outline" class="w-100 mt-2">
           <mat-label>E-mail</mat-label>
-          <input matInput formControlName="email" type="email" autocomplete="email">
+          <input matInput formControlName="email" type="email" autocomplete="email" maxlength="150">
           <mat-icon matPrefix>email</mat-icon>
           @if (form.get('email')?.hasError('required')) {
             <mat-error>E-mail obrigatório</mat-error>
@@ -21,7 +21,7 @@
 
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Senha</mat-label>
-          <input matInput formControlName="senha" [type]="senhaVisivel ? 'text' : 'password'" autocomplete="current-password">
+          <input matInput formControlName="senha" [type]="senhaVisivel ? 'text' : 'password'" autocomplete="current-password" maxlength="100">
           <mat-icon matPrefix>lock</mat-icon>
           <button mat-icon-button matSuffix type="button" (click)="senhaVisivel = !senhaVisivel">
             <mat-icon>{{ senhaVisivel ? 'visibility_off' : 'visibility' }}</mat-icon>

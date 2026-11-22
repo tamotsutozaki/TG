@@ -220,6 +220,9 @@ public class SolicitacaoService(
         var paciente = await pacienteRepository.GetByNomeETutorAsync(nome, tutor.Id);
         if (paciente is not null) return paciente;
 
+        Validacao.Faixa(input.PesoKg, 0.01m, 1500m, "O peso (kg)");
+        Validacao.Faixa(input.IdadeAnos, 0, 40, "A idade em anos");
+        Validacao.Faixa(input.IdadeMeses, 0, 11, "A idade em meses");
         paciente = new Paciente
         {
             Nome = nome,

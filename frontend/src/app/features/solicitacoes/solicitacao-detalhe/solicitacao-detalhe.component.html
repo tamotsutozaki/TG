@@ -48,7 +48,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline" class="obs-field">
             <mat-label>Observação (opcional)</mat-label>
-            <input matInput [formControl]="observacao">
+            <input matInput [formControl]="observacao" [maxlength]="limite.observacao">
           </mat-form-field>
           <button mat-raised-button color="primary" (click)="atualizarStatus()"
             [disabled]="!novoStatus.value || atualizandoStatus">
@@ -146,13 +146,15 @@
           }
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Conteúdo do Laudo</mat-label>
-            <textarea matInput [formControl]="laudoConteudo" rows="8"
+            <textarea matInput [formControl]="laudoConteudo" [maxlength]="limite.laudo" rows="8"
               placeholder="Redija o laudo do exame..."></textarea>
+            <mat-hint align="end">{{ laudoConteudo.value?.length || 0 }}/{{ limite.laudo }}</mat-hint>
+            <mat-error>{{ erro(laudoConteudo) }}</mat-error>
           </mat-form-field>
           <div class="acoes-laudo">
             <button mat-stroked-button (click)="mostrarFormLaudo = false">Cancelar</button>
             <button mat-raised-button color="primary" (click)="emitirLaudo()"
-              [disabled]="!laudoConteudo.value || emitindoLaudo">
+              [disabled]="laudoConteudo.invalid || emitindoLaudo">
               @if (emitindoLaudo) { <mat-spinner diameter="18"></mat-spinner> }
               @else { Emitir e Concluir }
             </button>
