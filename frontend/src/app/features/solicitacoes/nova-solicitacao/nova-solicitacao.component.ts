@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { UFS } from '../../../shared/formatadores';
-import { LIMITE, MASCARAS, casasDecimais, crmv, email, erroCampo, formatarTelefone, inteiro, obrigatorio, soLetras, telefone } from '../../../shared/validacao';
+import { LIMITE, MASCARAS, casasDecimais, crmv, email, erroCampo, formatarTelefone, inteiro, semSoEspacos, soLetras, telefone } from '../../../shared/validacao';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -64,20 +64,20 @@ export class NovaSolicitacaoComponent implements OnInit {
       tipoExameId: [null, Validators.required],
       descricaoClinica: ['', Validators.maxLength(LIMITE.descricaoClinica)],
       vetSolicitante: this.fb.group({
-        nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
-        crmvNumero: ['', [obrigatorio, crmv]],
+        nome: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.nome)]],
+        crmvNumero: ['', [Validators.required, semSoEspacos, crmv]],
         crmvEstado: ['', Validators.required],
         email: ['', [email, Validators.maxLength(LIMITE.email)]],
         telefone: ['', telefone]
       }),
       tutor: this.fb.group({
-        nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
-        telefone: ['', [obrigatorio, telefone]],
+        nome: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.nome)]],
+        telefone: ['', [Validators.required, semSoEspacos, telefone]],
         email: ['', [email, Validators.maxLength(LIMITE.email)]]
       }),
       paciente: this.fb.group({
-        nome: ['', [obrigatorio, Validators.maxLength(LIMITE.nome)]],
-        especie: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.especie)]],
+        nome: ['', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.nome)]],
+        especie: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.especie)]],
         raca: ['', [soLetras, Validators.maxLength(LIMITE.raca)]],
         sexo: ['NaoInformado'],
         idadeAnos: [null, [inteiro, Validators.min(0), Validators.max(40)]],

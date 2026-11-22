@@ -29,9 +29,12 @@ export const LIMITE = {
 
 const LETRAS = /^[A-Za-zÀ-ÖØ-öø-ÿ'´`^~.\- ]+$/;
 
-/** Campo obrigatório que não aceita só espaços. */
-export const obrigatorio: ValidatorFn = c =>
-  typeof c.value === 'string' && c.value.trim() === '' ? { required: true } : Validators.required(c);
+/**
+ * Não aceita campo preenchido só com espaços. Usar junto com Validators.required
+ * (o Material só mostra o asterisco de obrigatório quando encontra o Validators.required).
+ */
+export const semSoEspacos: ValidatorFn = c =>
+  typeof c.value === 'string' && c.value.length > 0 && c.value.trim() === '' ? { required: true } : null;
 
 /** Só letras, espaços, apóstrofo, ponto e hífen (nomes de pessoas, cidades, espécie, raça). */
 export const soLetras: ValidatorFn = c =>

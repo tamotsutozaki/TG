@@ -14,7 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConviteInfo } from '../../../core/models/auth.model';
 import { UFS, normalizarCnpj } from '../../../shared/formatadores';
-import { LIMITE, MASCARAS, cnpj, crmv, email, erroCampo, obrigatorio, soLetras, telefone } from '../../../shared/validacao';
+import { LIMITE, MASCARAS, cnpj, crmv, email, erroCampo, semSoEspacos, soLetras, telefone } from '../../../shared/validacao';
 
 // CNPJ numérico ou alfanumérico: 12 caracteres + 2 dígitos (os dígitos são conferidos pela API)
 function senhasIguais(group: AbstractControl): ValidationErrors | null {
@@ -194,16 +194,16 @@ export class CadastroLaboratorioComponent implements OnInit {
   limite = LIMITE;
 
   form = inject(FormBuilder).group({
-    nome: ['', [obrigatorio, Validators.maxLength(LIMITE.nomeLaboratorio)]],
-    cnpj: ['', [obrigatorio, cnpj]],
-    telefone: ['', [obrigatorio, telefone]],
-    endereco: ['', [obrigatorio, Validators.maxLength(LIMITE.endereco)]],
-    cidade: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.cidade)]],
+    nome: ['', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.nomeLaboratorio)]],
+    cnpj: ['', [Validators.required, semSoEspacos, cnpj]],
+    telefone: ['', [Validators.required, semSoEspacos, telefone]],
+    endereco: ['', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.endereco)]],
+    cidade: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.cidade)]],
     uf: ['', Validators.required],
-    responsavelTecnicoNome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
-    responsavelTecnicoCrmvNumero: ['', [obrigatorio, crmv]],
+    responsavelTecnicoNome: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.nome)]],
+    responsavelTecnicoCrmvNumero: ['', [Validators.required, semSoEspacos, crmv]],
     responsavelTecnicoCrmvEstado: ['', Validators.required],
-    email: ['', [obrigatorio, email, Validators.maxLength(LIMITE.email)]],
+    email: ['', [Validators.required, semSoEspacos, email, Validators.maxLength(LIMITE.email)]],
     senha: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(LIMITE.senha)]],
     confirmarSenha: ['', Validators.required]
   }, { validators: senhasIguais });

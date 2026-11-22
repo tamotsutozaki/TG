@@ -19,7 +19,7 @@ import { InsumoService } from '../../core/services/insumo.service';
 import { ExameInsumoDto, TipoExameDetalhadoDto, TipoExameDto } from '../../core/models/tipo-exame.model';
 import { InsumoDto } from '../../core/models/insumo.model';
 import { confirmar } from '../../shared/confirmar-dialog.component';
-import { LIMITE, casasDecimais, erroCampo, inteiro, obrigatorio } from '../../shared/validacao';
+import { LIMITE, casasDecimais, erroCampo, inteiro, semSoEspacos } from '../../shared/validacao';
 import { mensagemErro } from '../../shared/erros';
 
 // ── Dialog: Criar/Editar Tipo de Exame ──────────────────────────────────────
@@ -66,7 +66,7 @@ export class TipoExameDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: TipoExameDto | null
   ) {
     this.form = this.fb.group({
-      nome: [data?.nome ?? '', [obrigatorio, Validators.maxLength(LIMITE.nomeItem)]],
+      nome: [data?.nome ?? '', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.nomeItem)]],
       descricao: [data?.descricao ?? '', Validators.maxLength(LIMITE.descricaoCurta)],
       prazoEstimadoDias: [data?.prazoEstimadoDias ?? 5, [Validators.required, inteiro, Validators.min(1), Validators.max(365)]]
     });
@@ -135,7 +135,7 @@ export class TemplatesDialogComponent {
     private service: TipoExameService,
     private snack: MatSnackBar
   ) {
-    this.form = this.fb.group({ conteudo: ['', [obrigatorio, Validators.maxLength(LIMITE.laudo)]] });
+    this.form = this.fb.group({ conteudo: ['', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.laudo)]] });
   }
   addTemplate() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }

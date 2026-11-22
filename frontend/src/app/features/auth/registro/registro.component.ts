@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { UFS } from '../../../shared/formatadores';
-import { LIMITE, MASCARAS, crmv, email, erroCampo, obrigatorio, soLetras, telefone } from '../../../shared/validacao';
+import { LIMITE, MASCARAS, crmv, email, erroCampo, semSoEspacos, soLetras, telefone } from '../../../shared/validacao';
 
 @Component({
   selector: 'app-registro',
@@ -140,10 +140,10 @@ export class RegistroComponent {
 
   constructor() {
     this.form = this.fb.group({
-      nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
-      email: ['', [obrigatorio, email, Validators.maxLength(LIMITE.email)]],
+      nome: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.nome)]],
+      email: ['', [Validators.required, semSoEspacos, email, Validators.maxLength(LIMITE.email)]],
       senha: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(LIMITE.senha)]],
-      crmvNumero: ['', [obrigatorio, crmv]],
+      crmvNumero: ['', [Validators.required, semSoEspacos, crmv]],
       crmvEstado: ['', Validators.required],
       telefone: ['', telefone]
     });

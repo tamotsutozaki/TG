@@ -13,7 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { confirmar } from '../../shared/confirmar-dialog.component';
 import { mensagemErro } from '../../shared/erros';
-import { LIMITE, casasDecimais, erroCampo, inteiro, obrigatorio } from '../../shared/validacao';
+import { LIMITE, casasDecimais, erroCampo, inteiro, semSoEspacos } from '../../shared/validacao';
 import { InsumoService } from '../../core/services/insumo.service';
 import { InsumoDto } from '../../core/models/insumo.model';
 
@@ -60,8 +60,8 @@ export class InsumoDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: InsumoDto | null
   ) {
     this.form = this.fb.group({
-      nome: [data?.nome ?? '', [obrigatorio, Validators.maxLength(LIMITE.nomeItem)]],
-      unidadeMedida: [data?.unidadeMedida ?? '', [obrigatorio, Validators.maxLength(LIMITE.unidade)]],
+      nome: [data?.nome ?? '', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.nomeItem)]],
+      unidadeMedida: [data?.unidadeMedida ?? '', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.unidade)]],
       quantidadeMinima: [data?.quantidadeMinima ?? 0, [Validators.required, casasDecimais(3), Validators.min(0), Validators.max(999999)]]
     });
   }

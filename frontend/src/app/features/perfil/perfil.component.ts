@@ -14,7 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PerfilService } from '../../core/services/perfil.service';
 import { PerfilLaboratorio, PerfilVeterinario } from '../../core/models/perfil.model';
 import { UFS, formatarCrmv, linkAbsoluto } from '../../shared/formatadores';
-import { LIMITE, MASCARAS, crmv, email, erroCampo, obrigatorio, soLetras, telefone } from '../../shared/validacao';
+import { LIMITE, MASCARAS, crmv, email, erroCampo, semSoEspacos, soLetras, telefone } from '../../shared/validacao';
 
 function senhasIguais(group: AbstractControl): ValidationErrors | null {
   return group.get('novaSenha')?.value === group.get('confirmarSenha')?.value ? null : { senhasDiferentes: true };
@@ -49,19 +49,19 @@ export class PerfilComponent implements OnInit {
   veterinario: PerfilVeterinario | null = null;
 
   formLaboratorio = this.fb.group({
-    nome: ['', [obrigatorio, Validators.maxLength(LIMITE.nomeLaboratorio)]],
-    endereco: ['', [obrigatorio, Validators.maxLength(LIMITE.endereco)]],
-    cidade: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.cidade)]],
+    nome: ['', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.nomeLaboratorio)]],
+    endereco: ['', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.endereco)]],
+    cidade: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.cidade)]],
     uf: ['', Validators.required],
-    telefone: ['', [obrigatorio, telefone]],
-    email: ['', [obrigatorio, email, Validators.maxLength(LIMITE.email)]],
-    responsavelTecnicoNome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
-    responsavelTecnicoCrmvNumero: ['', [obrigatorio, crmv]],
+    telefone: ['', [Validators.required, semSoEspacos, telefone]],
+    email: ['', [Validators.required, semSoEspacos, email, Validators.maxLength(LIMITE.email)]],
+    responsavelTecnicoNome: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.nome)]],
+    responsavelTecnicoCrmvNumero: ['', [Validators.required, semSoEspacos, crmv]],
     responsavelTecnicoCrmvEstado: ['', Validators.required]
   });
 
   formVeterinario = this.fb.group({
-    nome: ['', [obrigatorio, soLetras, Validators.maxLength(LIMITE.nome)]],
+    nome: ['', [Validators.required, semSoEspacos, soLetras, Validators.maxLength(LIMITE.nome)]],
     telefone: ['', telefone]
   });
 

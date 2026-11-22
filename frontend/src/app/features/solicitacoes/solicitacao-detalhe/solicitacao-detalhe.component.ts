@@ -21,7 +21,7 @@ import { SolicitacaoDetalhadaDto, StatusSolicitacao } from '../../../core/models
 import { METODO_ENTRADA_LABEL, SEXO_LABEL } from '../../../shared/formatadores';
 
 import { mensagemErro } from '../../../shared/erros';
-import { LIMITE, erroCampo, obrigatorio } from '../../../shared/validacao';
+import { LIMITE, erroCampo, semSoEspacos } from '../../../shared/validacao';
 @Component({
   selector: 'app-solicitacao-detalhe',
   standalone: true,
@@ -43,7 +43,7 @@ export class SolicitacaoDetalheComponent implements OnInit {
   // Sem validação de obrigatório: o botão já fica desabilitado sem escolha, e o campo ficava vermelho à toa
   novoStatus = new FormControl<StatusSolicitacao | null>(null);
   observacao = new FormControl('', Validators.maxLength(LIMITE.observacao));
-  laudoConteudo = new FormControl('', [obrigatorio, Validators.maxLength(LIMITE.laudo)]);
+  laudoConteudo = new FormControl('', [Validators.required, semSoEspacos, Validators.maxLength(LIMITE.laudo)]);
   limite = LIMITE;
   erro = erroCampo;
 
