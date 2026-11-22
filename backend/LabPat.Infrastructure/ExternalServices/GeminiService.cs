@@ -73,12 +73,18 @@ public class GeminiService(IHttpClientFactory httpClientFactory, IConfiguration 
         };
 
         var client = httpClientFactory.CreateClient("Gemini");
-        var body = new StringContent(
-            JsonSerializer.Serialize(requestBody),
-            Encoding.UTF8,
-            "application/json");
+        var json = JsonSerializer.Serialize(requestBody);
 
-        var response = await client.PostAsync(url, body);
+        // Sobrecarga momentânea do Gemini (503/429/500) costuma responder rápido: tenta mais duas vezes
+        HttpResponseMessage response;
+        for (var tentativa = 1; ; tentativa++)
+        {
+            response = await client.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
+            var transitorio = (int)response.StatusCode is 429 or 500 or 503;
+            if (!transitorio || tentativa == 3)
+                break;
+            await Task.Delay(TimeSpan.FromSeconds(2 * tentativa));
+        }
         response.EnsureSuccessStatusCode();
 
         var responseJson = await response.Content.ReadAsStringAsync();

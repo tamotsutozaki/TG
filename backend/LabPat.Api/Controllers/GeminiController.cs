@@ -41,9 +41,17 @@ public class GeminiController(IGeminiService geminiService) : ControllerBase
             var resultado = await geminiService.ExtrairDadosAsync(bytes, mimeType);
             return Ok(resultado);
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException ex) when ((int?)ex.StatusCode is 429 or 500 or 503)
         {
-            return StatusCode(502, new { message = "Erro ao comunicar com a API do Gemini.", detalhe = ex.Message });
+            return StatusCode(503, new { message = "O serviço de IA está sobrecarregado no momento. Tente novamente em instantes ou preencha manualmente." });
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(502, new { message = "Erro ao comunicar com o serviço de IA. Preencha manualmente." });
+        }
+        catch (TaskCanceledException)
+        {
+            return StatusCode(504, new { message = "O serviço de IA demorou demais para responder. Tente novamente ou preencha manualmente." });
         }
         catch (JsonException)
         {

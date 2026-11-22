@@ -134,9 +134,9 @@ export class NovaSolicitacaoComponent implements OnInit {
         this.preencherFormulario(dados);
         this.snack.open('Dados extraídos. Revise e confirme.', 'OK', { duration: 4000 });
       },
-      error: () => {
+      error: err => {
         this.extraindo = false;
-        this.snack.open('Erro ao extrair. Preencha manualmente.', 'OK', { duration: 4000 });
+        this.snack.open(err?.error?.message ?? 'Erro ao extrair. Preencha manualmente.', 'OK', { duration: 6000 });
       }
     });
   }

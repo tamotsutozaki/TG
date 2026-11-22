@@ -81,7 +81,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient("Gemini");
+builder.Services.AddHttpClient("Gemini", c => c.Timeout = TimeSpan.FromSeconds(90));
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 
 // Repositórios
