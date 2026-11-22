@@ -24,10 +24,13 @@
             <span class="item-data">Cadastrado em {{ v.criadoEm | date:'dd/MM/yyyy' }}</span>
           </div>
           <div class="item-acoes">
-            <span class="chip" [class.Ativo]="v.ativo" [class.Inativo]="!v.ativo">{{ v.ativo ? 'Ativo' : 'Inativo' }}</span>
-            <button mat-stroked-button [color]="v.ativo ? 'warn' : 'primary'"
+            <!-- Selo que vira a ação ao passar o mouse; no celular a ação fica sempre visível -->
+            <button type="button" class="alternar-estado" [class.ativo]="v.ativo"
+                    [attr.aria-label]="v.ativo ? 'Desativar' : 'Reativar'"
+                    [matTooltip]="v.ativo ? 'Clique para desativar a conta' : 'Clique para reativar a conta'"
                     (click)="alternarAtivo(v)" [disabled]="processandoId === v.id">
-              {{ v.ativo ? 'Desativar' : 'Reativar' }}
+              <span class="chip" [class.Ativo]="v.ativo" [class.Inativo]="!v.ativo">{{ v.ativo ? 'Ativo' : 'Inativo' }}</span>
+              <span class="acao">{{ v.ativo ? 'Desativar' : 'Reativar' }}</span>
             </button>
           </div>
         </div>

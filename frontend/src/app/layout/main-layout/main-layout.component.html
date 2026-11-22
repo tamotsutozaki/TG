@@ -2,6 +2,7 @@
   <mat-sidenav #sidenav class="sidenav"
     [mode]="isMobile() ? 'over' : 'side'"
     [opened]="!isMobile()">
+    <div class="sidenav-corpo">
     <div class="sidenav-header">
       <span class="logo">LabPat</span>
       <span class="logo-sub">{{ auth.isAdministrador() ? 'Administração do sistema' : 'Patologia Veterinária' }}</span>
@@ -17,11 +18,17 @@
       }
     </mat-nav-list>
 
+    <!-- Usuário e saída no rodapé da barra lateral -->
     <div class="sidenav-footer">
-      <span class="user-name">{{ auth.currentUser()?.nome }}</span>
+      <span class="avatar">{{ iniciais() }}</span>
+      <div class="user-info">
+        <span class="user-name">{{ auth.currentUser()?.nome }}</span>
+        @if (papelRotulo() !== auth.currentUser()?.nome) { <span class="user-papel">{{ papelRotulo() }}</span> }
+      </div>
       <button mat-icon-button (click)="auth.logout()" matTooltip="Sair">
         <mat-icon>logout</mat-icon>
       </button>
+    </div>
     </div>
   </mat-sidenav>
 

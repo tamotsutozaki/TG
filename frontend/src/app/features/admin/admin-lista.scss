@@ -20,3 +20,43 @@
   .item { flex-direction: column; align-items: stretch; }
   .item-acoes { justify-content: space-between; }
 }
+
+// Selo de situação que vira o botão de ação ao passar o mouse
+.alternar-estado {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  .chip { min-width: 72px; text-align: center; transition: opacity .15s; }
+  .acao {
+    display: none;
+    min-width: 72px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    color: #fff;
+    background: #3f51b5;
+  }
+  &.ativo .acao { background: #c62828; }
+
+  &:disabled { cursor: default; opacity: .6; }
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) .chip,
+    &:focus-visible .chip { display: none; }
+    &:hover:not(:disabled) .acao,
+    &:focus-visible .acao { display: inline-block; }
+  }
+
+  // Sem mouse (celular): mostra o selo e a ação lado a lado
+  @media (hover: none) {
+    .acao { display: inline-block; }
+  }
+}

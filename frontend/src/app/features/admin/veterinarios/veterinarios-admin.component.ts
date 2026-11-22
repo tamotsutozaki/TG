@@ -8,6 +8,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AdminService } from '../../../core/services/admin.service';
 import { VeterinarioAdmin } from '../../../core/models/admin.model';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { confirmar } from '../../../shared/confirmar-dialog.component';
 import { formatarCrmv } from '../../../shared/formatadores';
 
@@ -16,7 +17,7 @@ import { formatarCrmv } from '../../../shared/formatadores';
   standalone: true,
   imports: [
     CommonModule, MatCardModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatDialogModule, MatSnackBarModule
+    MatProgressSpinnerModule, MatDialogModule, MatSnackBarModule, MatTooltipModule
   ],
   templateUrl: './veterinarios-admin.component.html',
   styleUrl: '../admin-lista.scss'

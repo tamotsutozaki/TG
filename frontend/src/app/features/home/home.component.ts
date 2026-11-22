@@ -23,6 +23,18 @@ import { AuthService } from '../../core/services/auth.service';
   ],
   template: `
     <div class="home-container">
+      <!-- Um único acesso ao login, no canto superior direito, para todos os perfis -->
+      <nav class="topo">
+        @if (auth.isLoggedIn()) {
+          <button mat-stroked-button color="primary" (click)="irParaPainel()">
+            <mat-icon>dashboard</mat-icon> Ir para o painel
+          </button>
+        } @else {
+          <button mat-stroked-button color="primary" (click)="irParaLogin()">
+            <mat-icon>login</mat-icon> Entrar
+          </button>
+        }
+      </nav>
       <div class="home-content">
         <header class="brand">
           <mat-icon class="brand-icon">biotech</mat-icon>
@@ -56,23 +68,13 @@ import { AuthService } from '../../core/services/auth.service';
           <mat-icon>pets</mat-icon>
           <div class="acesso-vet-texto">
             <span class="acesso-vet-titulo">É veterinário?</span>
-            <span class="acesso-vet-sub">Envie solicitações de exame pela plataforma</span>
+            <span class="acesso-vet-sub">Crie sua conta e envie solicitações de exame aos laboratórios</span>
           </div>
-          <button mat-stroked-button color="primary" (click)="irParaLogin()">Entrar</button>
           <button mat-flat-button color="primary" (click)="irParaRegistro()">Criar conta</button>
         </div>
 
         <footer class="acesso-interno">
-          @if (auth.isLoggedIn()) {
-            <button mat-button (click)="irParaPainel()">
-              <mat-icon>dashboard</mat-icon>
-              Ir para o painel
-            </button>
-          }
-          <p class="nota-laboratorio">
-            Laboratórios entram no sistema por convite.
-            Já tem acesso? <a (click)="irParaLogin()">Entrar</a>
-          </p>
+          <p class="nota-laboratorio">Laboratórios entram no sistema por convite do administrador.</p>
         </footer>
       </div>
     </div>
@@ -82,7 +84,9 @@ import { AuthService } from '../../core/services/auth.service';
       display: flex; justify-content: center; align-items: center;
       min-height: 100vh; background: #f5f5f5; padding: 16px;
     }
-    .home-content { width: 100%; max-width: 480px; }
+    .home-container { position: relative; }
+    .topo { position: absolute; top: 16px; right: 16px; }
+    .home-content { width: 100%; max-width: 480px; padding-top: 48px; }
     .brand { text-align: center; margin-bottom: 24px; color: #3f51b5; }
     .brand-icon { font-size: 48px; height: 48px; width: 48px; }
     .brand h1 { margin: 8px 0 4px; font-size: 32px; font-weight: 600; }
@@ -101,7 +105,6 @@ import { AuthService } from '../../core/services/auth.service';
     .acesso-vet-sub { font-size: 12px; color: #666; }
     .acesso-interno { text-align: center; margin-top: 16px; }
     .nota-laboratorio { font-size: 12px; color: #888; margin: 8px 0 0; }
-    .nota-laboratorio a { color: #3f51b5; cursor: pointer; text-decoration: underline; }
   `]
 })
 export class HomeComponent {

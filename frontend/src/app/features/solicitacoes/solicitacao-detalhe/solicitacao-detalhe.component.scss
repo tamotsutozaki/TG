@@ -24,6 +24,7 @@
   grid-template-columns: 1fr 1fr;
   column-gap: 16px;
   mat-divider, .info-item.desc { grid-column: 1 / -1; }
+  mat-divider { margin: 4px 0 16px !important; }
 }
 
 .info-item {

@@ -9,6 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AdminService } from '../../../core/services/admin.service';
 import { LaboratorioAdmin } from '../../../core/models/admin.model';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { confirmar } from '../../../shared/confirmar-dialog.component';
 import { formatarCnpj } from '../../../shared/formatadores';
 
@@ -17,7 +18,7 @@ import { formatarCnpj } from '../../../shared/formatadores';
   standalone: true,
   imports: [
     CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatDialogModule, MatSnackBarModule
+    MatProgressSpinnerModule, MatDialogModule, MatSnackBarModule, MatTooltipModule
   ],
   templateUrl: './laboratorios-admin.component.html',
   styleUrl: '../admin-lista.scss'

@@ -61,6 +61,18 @@ export class MainLayoutComponent {
 
   constructor(public auth: AuthService) {}
 
+  iniciais(): string {
+    const partes = (this.auth.currentUser()?.nome ?? '')
+      .replace(/^(Dr|Dra)\.?\s+/i, '').split(/\s+/).filter(Boolean);
+    return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes[partes.length - 1][0] : '')).toUpperCase();
+  }
+
+  papelRotulo(): string {
+    if (this.auth.isAdministrador()) return 'Administrador';
+    if (this.auth.isPatologista()) return 'Laboratório';
+    return 'Médico veterinário';
+  }
+
   get navItems() {
     const papel = this.auth.currentUser()?.papel;
     return papel ? this.itensPorPapel[papel] : [];
