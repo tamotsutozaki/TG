@@ -49,10 +49,13 @@ table { border-radius: 8px; overflow: hidden; }
     button { width: 100%; }
   }
 
-  // Esconde colunas secundárias no celular (veterinário e data)
+  // No celular cada solicitação vira um cartão: código e status no alto, paciente em destaque
+  .mat-column-codigoPublico { order: 1; }
+  .mat-column-status { order: 2; margin-left: auto; }
+  .mat-column-paciente { order: 3; flex-basis: 100%; font-weight: 500; font-size: 16px !important; }
+  .mat-column-tipoExame { order: 4; color: #555; }
+  .mat-column-data { order: 5; color: #888; &::before { content: '· '; } }
   .mat-column-vet,
-  .mat-column-laboratorio,
-  .mat-column-data {
-    display: none;
-  }
+  .mat-column-laboratorio { order: 6; flex-basis: 100%; color: #888; font-size: 13px !important; }
+  .mat-column-acoes { display: none !important; }
 }

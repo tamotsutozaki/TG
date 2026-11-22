@@ -75,10 +75,14 @@ mat-spinner { display: inline-block; margin-right: 8px; }
     grid-template-columns: 1fr;
   }
 
+  // Os quatro métodos de entrada em uma grade 2 x 2, sem nada cortado
   .toggle-grupo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    mat-button-toggle { justify-content: center; border-left: none; border-top: 1px solid rgba(0, 0, 0, 0.12); }
+    mat-button-toggle:nth-child(-n + 2) { border-top: none; }
+    mat-button-toggle:nth-child(even) { border-left: 1px solid rgba(0, 0, 0, 0.12); }
   }
 
   .acoes {

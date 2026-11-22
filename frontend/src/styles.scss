@@ -102,3 +102,35 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background:
 @media (max-width: 600px) {
   .page-header h2 { font-size: 20px; }
 }
+
+// Tabelas que viram cartões no celular: cada linha vira um bloco e cada componente
+// define a ordem e o rótulo das colunas (ver .mat-column-* nos .scss das telas)
+@media (max-width: 600px) {
+  table.tabela-cartoes {
+    display: block;
+
+    thead { display: none; }
+    tbody { display: block; }
+
+    tr.mat-mdc-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 12px;
+      height: auto;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    td.mat-mdc-cell {
+      display: block;
+      border: 0;
+      padding: 0;
+      min-height: 0;
+      font-size: 14px;
+    }
+  }
+
+  // Sem rolagem lateral quando a tabela já virou cartões
+  .table-scroll:has(> table.tabela-cartoes) { overflow-x: visible; }
+}

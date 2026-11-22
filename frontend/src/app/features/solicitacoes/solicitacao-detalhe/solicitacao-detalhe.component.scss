@@ -18,10 +18,20 @@
   margin-bottom: 16px;
 }
 
+// Dados do paciente e do exame em duas colunas dentro de cada cartão
+.grid-info mat-card-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 16px;
+  mat-divider, .info-item.desc { grid-column: 1 / -1; }
+}
+
 .info-item {
   display: flex;
   flex-direction: column;
-  margin-bottom: 8px;
+  gap: 2px;
+  margin-bottom: 12px;
+  span:last-child { font-size: 15px; }
   &.desc span:last-child { white-space: pre-wrap; }
 }
 .label { font-size: 11px; color: #757575; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -52,7 +62,7 @@
   }
   &.ativo .step-dot { background: #3f51b5; color: white; }
   &.atual .step-dot { background: #3f51b5; color: white; box-shadow: 0 0 0 3px rgba(63,81,181,0.3); }
-  .step-label { font-size: 10px; text-align: center; max-width: 72px; }
+  .step-label { font-size: 12px; text-align: center; max-width: 84px; }
 }
 
 .step-connector {
@@ -115,6 +125,17 @@ mat-spinner { display: inline-block; margin-right: 8px; }
   .grid-info {
     grid-template-columns: 1fr;
   }
+
+  // Linha do tempo cabe em uma linha: só a etapa atual mostra o nome
+  .status-timeline { flex-wrap: nowrap; }
+  .status-step {
+    .step-dot { width: 28px; height: 28px; font-size: 12px; }
+    .step-label { display: none; }
+    &.atual .step-label { display: block; position: absolute; margin-top: 34px; white-space: nowrap; font-size: 11px; font-weight: 500; }
+  }
+  .status-step.atual { position: relative; }
+  .step-connector { min-width: 8px; margin-bottom: 0; }
+  .status-timeline { padding-bottom: 24px; }
 
   .status-update-form {
     flex-direction: column;

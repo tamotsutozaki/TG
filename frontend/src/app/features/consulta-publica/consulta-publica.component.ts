@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { ConsultaPublicaDto } from '../../core/models/solicitacao.model';
@@ -12,7 +13,7 @@ import { ConsultaPublicaDto } from '../../core/models/solicitacao.model';
 @Component({
   selector: 'app-consulta-publica',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatProgressSpinnerModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatProgressSpinnerModule, MatIconModule, MatButtonModule, MatProgressBarModule],
   template: `
     <div class="consulta-container">
       <mat-card class="consulta-card">
@@ -32,6 +33,13 @@ import { ConsultaPublicaDto } from '../../core/models/solicitacao.model';
               <p>{{ erro }}</p>
             </div>
           } @else if (dados) {
+            <div class="progresso">
+              <div class="progresso-texto">
+                <span>Andamento do exame</span>
+                <span>Etapa {{ etapa(dados.status) }} de {{ etapas.length }}</span>
+              </div>
+              <mat-progress-bar mode="determinate" [value]="etapa(dados.status) / etapas.length * 100"></mat-progress-bar>
+            </div>
             <div class="info-grid">
               <div class="info-item">
                 <span class="label">Código</span>
@@ -75,11 +83,16 @@ import { ConsultaPublicaDto } from '../../core/models/solicitacao.model';
       min-height: 100vh; background: #f5f5f5; padding: 16px;
     }
     .consulta-card { width: 100%; max-width: 480px; padding: 8px; }
-    .voltar-link { margin: 4px 0 8px; }
-    .info-grid { display: grid; gap: 16px; margin-top: 16px; }
+    .voltar-link { margin: 4px 0 8px; align-self: flex-start; }
+    .info-item .status-chip { align-self: flex-start; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 360px) { .info-grid { grid-template-columns: 1fr; } }
     .info-item { display: flex; flex-direction: column; gap: 4px; }
     .label { font-size: 12px; color: #666; }
     .value { font-size: 15px; font-weight: 500; }
+    .progresso { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .progresso-texto { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #666; }
+    mat-progress-bar { border-radius: 4px; height: 6px; }
     .erro { display: flex; flex-direction: column; align-items: center; color: #c62828; padding: 24px; }
   `]
 })
@@ -104,6 +117,9 @@ export class ConsultaPublicaComponent {
         error: () => { this.erro = 'Código não encontrado.'; this.loading = false; }
       });
   }
+
+  etapas = Object.keys(this.statusLabels);
+  etapa(s: string) { return this.etapas.indexOf(s) + 1; }
 
   statusLabel(s: string) { return this.statusLabels[s] ?? s; }
 }

@@ -31,9 +31,11 @@
     button { width: 100%; }
   }
 
-  // Esconde colunas secundárias no celular (unidade e qtd. mínima)
-  .mat-column-unidade,
-  .mat-column-minima {
-    display: none;
-  }
+  // No celular cada insumo vira um cartão: nome e situação no alto, quantidades e ações embaixo
+  .mat-column-nome { order: 1; flex: 1 0 calc(100% - 140px); min-width: 0; white-space: normal; font-size: 16px !important; }
+  .mat-column-status { order: 2; }
+  .mat-column-quantidade { order: 3; &:not(.estoque-baixo) { color: #555; } &::before { content: 'Quantidade: '; color: #888; } }
+  .mat-column-unidade { order: 4; margin-left: -8px; color: #555; }
+  .mat-column-minima { order: 5; color: #888; &::before { content: '· mínimo '; } }
+  .mat-column-acoes { order: 6; margin-left: auto; white-space: nowrap; margin-right: -8px; }
 }
