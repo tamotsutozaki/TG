@@ -10,8 +10,11 @@ export class TipoExameService {
   constructor(private http: HttpClient) {}
 
   // laboratorioId: usado pelo veterinário (laboratório com vínculo aprovado)
-  getAll(laboratorioId?: number) {
-    const params = laboratorioId ? new HttpParams().set('laboratorioId', laboratorioId) : undefined;
+  // incluirInativos: usado na tela de tipos de exame, para o laboratório poder reativar
+  getAll(laboratorioId?: number, incluirInativos = false) {
+    let params = new HttpParams();
+    if (laboratorioId) params = params.set('laboratorioId', laboratorioId);
+    if (incluirInativos) params = params.set('incluirInativos', true);
     return this.http.get<TipoExameDto[]>(this.url, { params });
   }
 

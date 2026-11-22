@@ -11,6 +11,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { confirmar } from '../../shared/confirmar-dialog.component';
+import { mensagemErro } from '../../shared/erros';
 import { InsumoService } from '../../core/services/insumo.service';
 import { InsumoDto } from '../../core/models/insumo.model';
 
@@ -144,7 +146,7 @@ export class InsumosComponent implements OnInit {
 
   carregar() {
     this.loading = true;
-    this.service.getAll().subscribe({
+    this.service.getAll(true).subscribe({
       next: d => { this.insumos = d; this.loading = false; },
       error: () => { this.loading = false; }
     });
@@ -155,8 +157,8 @@ export class InsumosComponent implements OnInit {
       .afterClosed().subscribe(val => {
         if (!val) return;
         this.service.create(val).subscribe({
-          next: () => { this.carregar(); this.snack.open('Insumo criado!', 'OK', { duration: 3000 }); },
-          error: () => this.snack.open('Erro ao criar.', 'OK', { duration: 3000 })
+          next: () => { this.carregar(); this.avisar('Insumo cadastrado.'); },
+          error: e => this.avisar(mensagemErro(e, 'Não foi possível cadastrar o insumo.'))
         });
       });
   }
@@ -166,8 +168,8 @@ export class InsumosComponent implements OnInit {
       .afterClosed().subscribe(val => {
         if (!val) return;
         this.service.update(insumo.id, { ...val, ativo: insumo.ativo }).subscribe({
-          next: () => { this.carregar(); this.snack.open('Atualizado!', 'OK', { duration: 3000 }); },
-          error: () => this.snack.open('Erro.', 'OK', { duration: 3000 })
+          next: () => { this.carregar(); this.avisar('Insumo atualizado.'); },
+          error: e => this.avisar(mensagemErro(e, 'Não foi possível atualizar o insumo.'))
         });
       });
   }
@@ -177,16 +179,36 @@ export class InsumosComponent implements OnInit {
       .afterClosed().subscribe(novaQtd => {
         if (novaQtd === undefined || novaQtd === null) return;
         this.service.ajustarQuantidade(insumo.id, novaQtd).subscribe({
-          next: () => { this.carregar(); this.snack.open('Estoque ajustado!', 'OK', { duration: 3000 }); },
-          error: () => this.snack.open('Erro.', 'OK', { duration: 3000 })
+          next: () => { this.carregar(); this.avisar('Estoque ajustado.'); },
+          error: e => this.avisar(mensagemErro(e, 'Não foi possível ajustar o estoque.'))
         });
       });
   }
 
   excluir(insumo: InsumoDto) {
-    this.service.delete(insumo.id).subscribe({
-      next: () => { this.carregar(); this.snack.open('Desativado!', 'OK', { duration: 3000 }); },
-      error: () => this.snack.open('Erro.', 'OK', { duration: 3000 })
+    confirmar(this.dialog, {
+      titulo: 'Desativar insumo',
+      mensagem: `${insumo.nome} sai do estoque e deixa de ser descontado nos laudos. Você pode reativá-lo depois.`,
+      confirmar: 'Desativar',
+      perigoso: true
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.service.delete(insumo.id).subscribe({
+        next: () => { this.carregar(); this.avisar(`${insumo.nome} desativado.`); },
+        error: e => this.avisar(mensagemErro(e, 'Não foi possível desativar o insumo.'))
+      });
     });
+  }
+
+  reativar(insumo: InsumoDto) {
+    const { nome, unidadeMedida, quantidadeMinima } = insumo;
+    this.service.update(insumo.id, { nome, unidadeMedida, quantidadeMinima, ativo: true }).subscribe({
+      next: () => { this.carregar(); this.avisar(`${insumo.nome} reativado.`); },
+      error: e => this.avisar(mensagemErro(e, 'Não foi possível reativar o insumo.'))
+    });
+  }
+
+  private avisar(mensagem: string) {
+    this.snack.open(mensagem, 'OK', { duration: 4000 });
   }
 }

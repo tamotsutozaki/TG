@@ -13,7 +13,7 @@ public class TipoExameService(
     ICurrentUser currentUser,
     IUnitOfWork unitOfWork) : ITipoExameService
 {
-    public async Task<IEnumerable<TipoExameDto>> GetAllAsync(int? laboratorioId = null)
+    public async Task<IEnumerable<TipoExameDto>> GetAllAsync(int? laboratorioId = null, bool incluirInativos = false)
     {
         // Veterinário consulta os exames oferecidos por um laboratório com vínculo aprovado
         if (currentUser.Papel == PapelUsuario.Veterinario.ToString())
@@ -23,7 +23,9 @@ public class TipoExameService(
             await acessoVeterinario.EntrarNoLaboratorioAsync(id);
         }
 
-        var tipos = await tipoExameRepository.GetAllAtivosAsync();
+        // Só o laboratório vê os inativos (na tela de tipos de exame, para reativar)
+        var tipos = await tipoExameRepository.GetAllAsync(
+            incluirInativos && currentUser.Papel == PapelUsuario.Patologista.ToString());
         return tipos.Select(t => new TipoExameDto(t.Id, t.Nome, t.Descricao, t.PrazoEstimadoDias, t.Ativo));
     }
 
@@ -38,7 +40,7 @@ public class TipoExameService(
 
         var insumos = tipo.ExameInsumos
             .Select(ei => new ExameInsumoDto(
-                ei.InsumoId, ei.Insumo.Nome, ei.Insumo.UnidadeMedida, ei.QuantidadeConsumida));
+                ei.InsumoId, ei.Insumo.Nome, ei.Insumo.UnidadeMedida, ei.QuantidadeConsumida, ei.Insumo.Ativo));
 
         return new TipoExameDetalhadoDto(
             tipo.Id, tipo.Nome, tipo.Descricao, tipo.PrazoEstimadoDias, tipo.Ativo, templates, insumos);

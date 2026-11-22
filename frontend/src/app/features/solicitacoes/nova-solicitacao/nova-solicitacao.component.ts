@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { UFS } from '../../../shared/formatadores';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -33,6 +34,7 @@ import { MeuVinculo } from '../../../core/models/vinculo.model';
   styleUrl: './nova-solicitacao.component.scss'
 })
 export class NovaSolicitacaoComponent implements OnInit {
+  ufs = UFS;
   form: FormGroup;
   tiposExame: TipoExameDto[] = [];
   // Veterinário: laboratórios com vínculo aprovado (destino da solicitação)
@@ -60,24 +62,24 @@ export class NovaSolicitacaoComponent implements OnInit {
       descricaoClinica: [''],
       vetSolicitante: this.fb.group({
         nome: ['', Validators.required],
-        crmvNumero: ['', Validators.required],
-        crmvEstado: ['', [Validators.required, Validators.maxLength(2)]],
-        email: [''],
+        crmvNumero: ['', [Validators.required, Validators.pattern(/^\d{1,6}$/)]],
+        crmvEstado: ['', Validators.required],
+        email: ['', Validators.email],
         telefone: ['']
       }),
       tutor: this.fb.group({
         nome: ['', Validators.required],
         telefone: ['', Validators.required],
-        email: ['']
+        email: ['', Validators.email]
       }),
       paciente: this.fb.group({
         nome: ['', Validators.required],
         especie: ['', Validators.required],
         raca: [''],
         sexo: ['NaoInformado'],
-        idadeAnos: [null],
-        idadeMeses: [null],
-        pesoKg: [null]
+        idadeAnos: [null, [Validators.min(0), Validators.max(40)]],
+        idadeMeses: [null, [Validators.min(0), Validators.max(11)]],
+        pesoKg: [null, [Validators.min(0.01), Validators.max(1500)]]
       })
     });
   }
@@ -145,7 +147,7 @@ export class NovaSolicitacaoComponent implements OnInit {
     const set = (path: string, val: any) => { if (val) this.form.get(path)?.setValue(val); };
     set('vetSolicitante.nome', dados.vetNome);
     set('vetSolicitante.crmvNumero', dados.vetCrmvNumero);
-    set('vetSolicitante.crmvEstado', dados.vetCrmvEstado);
+    set('vetSolicitante.crmvEstado', dados.vetCrmvEstado?.trim().toUpperCase());
     set('vetSolicitante.email', dados.vetEmail);
     set('vetSolicitante.telefone', dados.vetTelefone);
     set('tutor.nome', dados.tutorNome);
@@ -193,7 +195,7 @@ export class NovaSolicitacaoComponent implements OnInit {
     this.salvando = true;
     this.solicitacaoService.create({ ...this.form.value, metodoEntrada: this.metodoEntrada }).subscribe({
       next: s => {
-        this.snack.open('Solicitação criada!', 'OK', { duration: 3000 });
+        this.snack.open('Solicitação criada.', 'OK', { duration: 3000 });
         this.router.navigate(['/solicitacoes', s.id]);
       },
       error: err => {

@@ -14,6 +14,13 @@ public class TipoExameRepository(AppDbContext context)
             .OrderBy(t => t.Nome)
             .ToListAsync();
 
+    // Inativos por último, para o laboratório poder reativá-los
+    public async Task<IEnumerable<TipoExame>> GetAllAsync(bool incluirInativos) =>
+        await Context.TiposExame
+            .Where(t => incluirInativos || t.Ativo)
+            .OrderByDescending(t => t.Ativo).ThenBy(t => t.Nome)
+            .ToListAsync();
+
     public async Task<TipoExame?> GetByIdComDetalhesAsync(int id) =>
         await Context.TiposExame
             .Include(t => t.Templates)

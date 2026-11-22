@@ -12,6 +12,8 @@ export interface LaudoDto {
   responsavelTecnicoNome: string;
   responsavelTecnicoCrmv: string;
   emitidoEm: string;
+  // Só na emissão: insumos que não tinham a quantidade necessária em estoque
+  insumosSemEstoque?: string[];
 }
 
 @Injectable({ providedIn: 'root' })

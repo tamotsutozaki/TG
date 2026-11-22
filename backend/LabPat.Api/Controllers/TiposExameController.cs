@@ -11,8 +11,8 @@ public class TiposExameController(ITipoExameService tipoExameService) : Controll
 {
     // Veterinário informa o laboratório (precisa ter vínculo aprovado)
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int? laboratorioId) =>
-        Ok(await tipoExameService.GetAllAsync(laboratorioId));
+    public async Task<IActionResult> GetAll([FromQuery] int? laboratorioId, [FromQuery] bool incluirInativos = false) =>
+        Ok(await tipoExameService.GetAllAsync(laboratorioId, incluirInativos));
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Patologista")]

@@ -7,9 +7,9 @@ public class InsumoService(
     IInsumoRepository insumoRepository,
     IUnitOfWork unitOfWork) : IInsumoService
 {
-    public async Task<IEnumerable<InsumoDto>> GetAllAsync()
+    public async Task<IEnumerable<InsumoDto>> GetAllAsync(bool incluirInativos = false)
     {
-        var insumos = await insumoRepository.GetAllAtivosAsync();
+        var insumos = await insumoRepository.GetAllAsync(incluirInativos);
         return insumos.Select(ToDto);
     }
 

@@ -21,6 +21,8 @@
 
 .alerta-estoque { color: #e65100; margin-left: 4px; }
 .linha-alerta { background: #fff8e1; }
+// Inativos aparecem esmaecidos no fim da lista, só com a opção de reativar
+.linha-inativa td:not(.mat-column-acoes) { opacity: .5; }
 
 @media (max-width: 600px) {
   .page-header {

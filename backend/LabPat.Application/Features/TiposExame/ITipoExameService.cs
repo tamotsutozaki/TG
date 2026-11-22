@@ -3,7 +3,7 @@ namespace LabPat.Application.Features.TiposExame;
 public interface ITipoExameService
 {
     // laboratorioId: usado apenas por veterinário (laboratório com vínculo aprovado)
-    Task<IEnumerable<TipoExameDto>> GetAllAsync(int? laboratorioId = null);
+    Task<IEnumerable<TipoExameDto>> GetAllAsync(int? laboratorioId = null, bool incluirInativos = false);
     Task<TipoExameDetalhadoDto?> GetByIdAsync(int id);
     Task<TipoExameDto> CreateAsync(CreateTipoExameInput input);
     Task<TipoExameDto?> UpdateAsync(int id, UpdateTipoExameInput input);

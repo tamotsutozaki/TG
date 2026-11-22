@@ -10,8 +10,8 @@ namespace LabPat.Api.Controllers;
 public class InsumosController(IInsumoService insumoService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll() =>
-        Ok(await insumoService.GetAllAsync());
+    public async Task<IActionResult> GetAll([FromQuery] bool incluirInativos = false) =>
+        Ok(await insumoService.GetAllAsync(incluirInativos));
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)

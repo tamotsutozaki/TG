@@ -6,6 +6,9 @@
   h2 { margin: 0; font-size: 22px; font-weight: 500; }
 }
 
+// Inativos aparecem esmaecidos no fim da lista, só com a opção de reativar
+.linha-inativa td:not(.mat-column-acoes) { opacity: .5; }
+
 .loading-center { display: flex; justify-content: center; padding: 48px; }
 
 .empty-state {

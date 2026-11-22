@@ -113,15 +113,19 @@
       </div>
       <div class="grid-3">
         <mat-form-field appearance="outline">
-          <mat-label>CRMV Número</mat-label>
-          <input matInput formControlName="crmvNumero">
+          <mat-label>Nº do CRMV</mat-label>
+          <input matInput formControlName="crmvNumero" inputmode="numeric" maxlength="6">
           @if (form.get('vetSolicitante.crmvNumero')?.hasError('required') && form.get('vetSolicitante.crmvNumero')?.touched) {
             <mat-error>Obrigatório</mat-error>
+          } @else if (form.get('vetSolicitante.crmvNumero')?.hasError('pattern')) {
+            <mat-error>Só números (até 6 dígitos)</mat-error>
           }
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Estado (UF)</mat-label>
-          <input matInput formControlName="crmvEstado" maxlength="2" style="text-transform:uppercase">
+          <mat-label>UF do CRMV</mat-label>
+          <mat-select formControlName="crmvEstado">
+            @for (uf of ufs; track uf) { <mat-option [value]="uf">{{ uf }}</mat-option> }
+          </mat-select>
           @if (form.get('vetSolicitante.crmvEstado')?.hasError('required') && form.get('vetSolicitante.crmvEstado')?.touched) {
             <mat-error>Obrigatório</mat-error>
           }
@@ -129,6 +133,7 @@
         <mat-form-field appearance="outline">
           <mat-label>E-mail</mat-label>
           <input matInput formControlName="email" type="email">
+          @if (form.get('vetSolicitante.email')?.hasError('email')) { <mat-error>E-mail inválido</mat-error> }
         </mat-form-field>
       </div>
     </mat-card-content>
@@ -157,6 +162,7 @@
         <mat-form-field appearance="outline">
           <mat-label>E-mail</mat-label>
           <input matInput formControlName="email" type="email">
+          @if (form.get('tutor.email')?.hasError('email')) { <mat-error>E-mail inválido</mat-error> }
         </mat-form-field>
       </div>
     </mat-card-content>
@@ -197,16 +203,19 @@
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Peso (kg)</mat-label>
-          <input matInput formControlName="pesoKg" type="number" step="0.1">
+          <input matInput formControlName="pesoKg" type="number" step="0.1" min="0">
+          @if (form.get('paciente.pesoKg')?.invalid) { <mat-error>Peso inválido</mat-error> }
         </mat-form-field>
         <div class="idade-campos">
           <mat-form-field appearance="outline">
             <mat-label>Anos</mat-label>
             <input matInput formControlName="idadeAnos" type="number" min="0">
+            @if (form.get('paciente.idadeAnos')?.invalid) { <mat-error>Inválido</mat-error> }
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Meses</mat-label>
             <input matInput formControlName="idadeMeses" type="number" min="0" max="11">
+            @if (form.get('paciente.idadeMeses')?.invalid) { <mat-error>0 a 11</mat-error> }
           </mat-form-field>
         </div>
       </div>

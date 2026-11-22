@@ -9,4 +9,8 @@ public record LaudoDto(
     string Conteudo,
     string ResponsavelTecnicoNome,
     string ResponsavelTecnicoCrmv,
-    DateTime EmitidoEm);
+    DateTime EmitidoEm)
+{
+    // Preenchido só na emissão: insumos que não tinham a quantidade necessária em estoque
+    public IReadOnlyList<string> InsumosSemEstoque { get; init; } = [];
+}

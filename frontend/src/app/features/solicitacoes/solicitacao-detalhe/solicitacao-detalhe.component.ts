@@ -20,6 +20,7 @@ import { TemplateLaudoDto } from '../../../core/models/tipo-exame.model';
 import { SolicitacaoDetalhadaDto, StatusSolicitacao } from '../../../core/models/solicitacao.model';
 import { METODO_ENTRADA_LABEL, SEXO_LABEL } from '../../../shared/formatadores';
 
+import { mensagemErro } from '../../../shared/erros';
 @Component({
   selector: 'app-solicitacao-detalhe',
   standalone: true,
@@ -131,7 +132,7 @@ export class SolicitacaoDetalheComponent implements OnInit {
         this.observacao.reset();
         this.atualizandoStatus = false;
         this.calcularProximos();
-        this.snack.open('Status atualizado!', 'OK', { duration: 3000 });
+        this.snack.open('Status atualizado.', 'OK', { duration: 3000 });
       },
       error: () => { this.atualizandoStatus = false; }
     });
@@ -166,9 +167,17 @@ export class SolicitacaoDetalheComponent implements OnInit {
         this.emitindoLaudo = false;
         this.mostrarFormLaudo = false;
         this.carregar(this.solicitacao!.id);
-        this.snack.open('Laudo emitido!', 'OK', { duration: 3000 });
+        const faltando = l.insumosSemEstoque ?? [];
+        if (faltando.length) {
+          this.snack.open(`Laudo emitido. Atenção: estoque insuficiente de ${faltando.join(', ')}.`, 'OK', { duration: 8000 });
+        } else {
+          this.snack.open('Laudo emitido.', 'OK', { duration: 3000 });
+        }
       },
-      error: () => { this.emitindoLaudo = false; }
+      error: e => {
+        this.emitindoLaudo = false;
+        this.snack.open(mensagemErro(e, 'Não foi possível emitir o laudo.'), 'OK', { duration: 5000 });
+      }
     });
   }
 

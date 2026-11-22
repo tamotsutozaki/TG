@@ -2,7 +2,7 @@ namespace LabPat.Application.Features.Insumos;
 
 public interface IInsumoService
 {
-    Task<IEnumerable<InsumoDto>> GetAllAsync();
+    Task<IEnumerable<InsumoDto>> GetAllAsync(bool incluirInativos = false);
     Task<InsumoDto?> GetByIdAsync(int id);
     Task<InsumoDto> CreateAsync(CreateInsumoInput input);
     Task<InsumoDto?> UpdateAsync(int id, UpdateInsumoInput input);

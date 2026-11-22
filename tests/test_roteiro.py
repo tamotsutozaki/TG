@@ -48,7 +48,10 @@ def secao(pg, titulo: str):
 def preencher_manual(pg, tipo: str, tutor: dict, paciente: dict, vet: dict | None = None):
     selecionar(pg, "Tipo de Exame", tipo)
     if vet:
+        uf = vet.pop("UF do CRMV", None)
         preencher(secao(pg, "Médico Veterinário Solicitante"), vet)
+        if uf:
+            selecionar(secao(pg, "Médico Veterinário Solicitante"), "UF do CRMV", uf)
     preencher(secao(pg, "Tutor"), tutor)
     sexo = paciente.pop("Sexo", None)
     preencher(secao(pg, "Paciente"), paciente)
@@ -261,7 +264,7 @@ def test_3_5_template_do_hemograma(janelas):
     pg = janelas.lab
     botao_icone(linha(pg, "Hemograma"), "description").click()
     campo(dialogo(pg), "Conteúdo").fill(TEMPLATE_HEMOGRAMA)
-    botao(dialogo(pg), "Adicionar Template").click()
+    botao(dialogo(pg), "Salvar nova versão").click()
     expect(dialogo(pg).locator(".template-box .versao")).to_have_text("Versão 1")
     botao(dialogo(pg), "Fechar").click()
     expect(dialogo(pg)).to_have_count(0)
@@ -401,8 +404,8 @@ def test_5_4_listas_e_extracao_pelo_laboratorio(janelas, arquivos):
     extrair(lab, "Foto da guia", arquivos["guia-exemplo.png"])
     vet_guia = secao(lab, "Médico Veterinário Solicitante")
     expect(campo(vet_guia, "Nome")).to_have_value("Dr. Rafael Moura")
-    expect(campo(vet_guia, "CRMV Número")).to_have_value("23456")
-    expect(campo(vet_guia, "Estado (UF)")).to_have_value("SP")
+    expect(campo(vet_guia, "Nº do CRMV")).to_have_value("23456")
+    expect(campo(vet_guia, "UF do CRMV")).to_contain_text("SP")
     criar_e_ler_codigo(lab)
 
 
@@ -411,11 +414,11 @@ def test_5_5_solicitacoes_pelo_crmv(janelas):
     tutor = {"Nome": "Paulo Reis", "Telefone": "(19) 98888-2222"}
     nova_solicitacao(lab)
     preencher_manual(lab, "Citologia", tutor=dict(tutor), paciente={"Nome": "Bidu", "Espécie": "Gato"},
-                     vet={"Nome": "Dr. Bruno Lima", "CRMV Número": "12345", "Estado (UF)": "SP"})
+                     vet={"Nome": "Dr. Bruno Lima", "Nº do CRMV": "12345", "UF do CRMV": "SP"})
     criar_e_ler_codigo(lab)
     nova_solicitacao(lab)
     preencher_manual(lab, "Citologia", tutor=dict(tutor), paciente={"Nome": "Nina", "Espécie": "Gato"},
-                     vet={"Nome": "Dra. Outra Pessoa", "CRMV Número": "99999", "Estado (UF)": "SP"})
+                     vet={"Nome": "Dra. Outra Pessoa", "Nº do CRMV": "99999", "UF do CRMV": "SP"})
     criar_e_ler_codigo(lab)
     vet = janelas.vet
     vet.reload()
@@ -427,7 +430,7 @@ def test_5_6_avanca_status(janelas):
     pg = janelas.lab
     abrir_solicitacao(pg, "Mel")
     avancar_status(pg, "Aguardando Amostra", "Amostra de sangue solicitada ao veterinário")
-    expect(aviso(pg)).to_contain_text("Status atualizado!")
+    expect(aviso(pg)).to_contain_text("Status atualizado.")
     avancar_status(pg, "Amostra Recebida")
     # Regra de status: só oferece etapas seguintes, e Concluído só é atingido pela emissão do laudo
     campo(pg, "Avançar para").press("Enter")
@@ -447,7 +450,7 @@ def test_5_7_emite_laudo_com_template(janelas):
     botao(pg, "Emitir Laudo").click()
     texto = campo(pg, "Conteúdo do Laudo")
     expect(texto).to_have_value(TEMPLATE_HEMOGRAMA)
-    expect(pg.get_by_text("Template do tipo de exame carregado")).to_be_visible()
+    expect(pg.get_by_text("Modelo de laudo carregado")).to_be_visible()
     texto.fill(TEMPLATE_HEMOGRAMA + "\nConclusão: hemograma sem alterações dignas de nota.")
     botao(pg, "Emitir e Concluir").click()
     expect(pg.locator(".page-header .status-chip")).to_have_text("Concluído")

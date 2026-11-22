@@ -60,12 +60,12 @@ public class LaudoService(
             Observacao = "Laudo emitido."
         });
 
-        await DescontarEstoqueAsync(solicitacao.TipoExameId);
+        var semEstoque = await DescontarEstoqueAsync(solicitacao.TipoExameId);
         solicitacaoRepository.Update(solicitacao);
         await unitOfWork.CommitAsync();
 
         laudo.Solicitacao = solicitacao;
-        return ToDto(laudo);
+        return ToDto(laudo) with { InsumosSemEstoque = semEstoque };
     }
 
     public async Task<LaudoDto?> GetByIdAsync(int id)
@@ -149,18 +149,24 @@ public class LaudoService(
         return await solicitacaoRepository.GetByIdVisivelAoVeterinarioAsync(solicitacaoId, acesso) is not null;
     }
 
-    private async Task DescontarEstoqueAsync(int tipoExameId)
+    // Desconta os insumos ativos vinculados ao tipo de exame e devolve os que não tinham a
+    // quantidade necessária (o estoque não fica negativo; o laboratório é avisado)
+    private async Task<IReadOnlyList<string>> DescontarEstoqueAsync(int tipoExameId)
     {
+        var semEstoque = new List<string>();
         var tipo = await tipoExameRepository.GetByIdComDetalhesAsync(tipoExameId);
-        if (tipo is null) return;
+        if (tipo is null) return semEstoque;
 
         foreach (var ei in tipo.ExameInsumos)
         {
             var insumo = await insumoRepository.GetByIdAsync(ei.InsumoId);
-            if (insumo is null) continue;
+            if (insumo is null || !insumo.Ativo) continue;
+            if (insumo.QuantidadeAtual < ei.QuantidadeConsumida)
+                semEstoque.Add(insumo.Nome);
             insumo.QuantidadeAtual = Math.Max(0, insumo.QuantidadeAtual - ei.QuantidadeConsumida);
             insumoRepository.Update(insumo);
         }
+        return semEstoque;
     }
 
     private static string FormatarCrmv(Laudo l) =>

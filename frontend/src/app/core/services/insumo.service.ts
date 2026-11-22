@@ -9,8 +9,9 @@ export class InsumoService {
 
   constructor(private http: HttpClient) {}
 
-  getAll() {
-    return this.http.get<InsumoDto[]>(this.url);
+  // incluirInativos: usado na tela de estoque, para o laboratório poder reativar
+  getAll(incluirInativos = false) {
+    return this.http.get<InsumoDto[]>(this.url, { params: incluirInativos ? { incluirInativos: true } : {} });
   }
 
   getById(id: number) {

@@ -5,4 +5,5 @@ namespace LabPat.Domain.Interfaces;
 public interface IInsumoRepository : IRepository<Insumo>
 {
     Task<IEnumerable<Insumo>> GetAllAtivosAsync();
+    Task<IEnumerable<Insumo>> GetAllAsync(bool incluirInativos);
 }

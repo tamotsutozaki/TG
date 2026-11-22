@@ -18,6 +18,8 @@ import { TipoExameService } from '../../core/services/tipo-exame.service';
 import { InsumoService } from '../../core/services/insumo.service';
 import { ExameInsumoDto, TipoExameDetalhadoDto, TipoExameDto } from '../../core/models/tipo-exame.model';
 import { InsumoDto } from '../../core/models/insumo.model';
+import { confirmar } from '../../shared/confirmar-dialog.component';
+import { mensagemErro } from '../../shared/erros';
 
 // ── Dialog: Criar/Editar Tipo de Exame ──────────────────────────────────────
 @Component({
@@ -75,26 +77,29 @@ export class TipoExameDialogComponent {
   }
 }
 
-// ── Dialog: Gerenciar Templates ──────────────────────────────────────────────
+// ── Dialog: Modelos de laudo (o mais recente é carregado ao emitir o laudo) ──────────────────────────────────────────────
 @Component({
   selector: 'app-templates-dialog',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatButtonModule, MatProgressSpinnerModule, MatDividerModule],
   template: `
-    <h2 mat-dialog-title>Templates — {{ data.nome }}</h2>
+    <h2 mat-dialog-title>Modelos de laudo — {{ data.nome }}</h2>
     <mat-dialog-content style="min-width:min(440px, 85vw); max-height:70vh; overflow-y:auto">
       @if (data.templates.length === 0) {
-        <p style="color:#9e9e9e; padding: 8px 0">Nenhum template cadastrado.</p>
+        <p style="color:#9e9e9e; padding: 8px 0">Nenhum modelo cadastrado.</p>
+      } @else {
+        <p class="ajuda">O modelo mais recente é carregado automaticamente ao emitir o laudo.</p>
       }
-      @for (t of data.templates; track t.id) {
-        <div class="template-box">
+      @for (t of data.templates; track t.id; let primeiro = $first) {
+        <div class="template-box" [class.em-uso]="primeiro">
           <span class="versao">Versão {{ t.versao }}</span>
+          @if (primeiro) { <span class="selo-uso">Em uso</span> }
           <p>{{ t.conteudo }}</p>
         </div>
       }
       <mat-divider style="margin: 16px 0"></mat-divider>
-      <p style="font-weight:500; margin-bottom:8px">Adicionar novo template</p>
+      <p style="font-weight:500; margin-bottom:8px">Nova versão do modelo</p>
       <form [formGroup]="form">
         <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Conteúdo</mat-label>
@@ -109,11 +114,14 @@ export class TipoExameDialogComponent {
     <mat-dialog-actions align="end">
       <button mat-stroked-button mat-dialog-close>Fechar</button>
       <button mat-raised-button color="primary" (click)="addTemplate()" [disabled]="salvando">
-        @if (salvando) { Salvando... } @else { Adicionar Template }
+        @if (salvando) { Salvando... } @else { Salvar nova versão }
       </button>
     </mat-dialog-actions>
   `,
   styles: [`.template-box { background:#f5f5f5; border-radius:8px; padding:12px; margin-bottom:8px; }
+    .template-box.em-uso { border-left: 3px solid #3f51b5; }
+    .selo-uso { margin-left: 8px; font-size: 11px; font-weight: 600; color: #3f51b5; }
+    .ajuda { font-size: 13px; color: #666; margin: 0 0 8px; }
     .versao { font-size:11px; color:#757575; }
     p { white-space:pre-wrap; font-size:13px; margin: 4px 0 0; }`]
 })
@@ -124,7 +132,8 @@ export class TemplatesDialogComponent {
     private fb: FormBuilder,
     public ref: MatDialogRef<TemplatesDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: TipoExameDetalhadoDto,
-    private service: TipoExameService
+    private service: TipoExameService,
+    private snack: MatSnackBar
   ) {
     this.form = this.fb.group({ conteudo: ['', Validators.required] });
   }
@@ -133,7 +142,7 @@ export class TemplatesDialogComponent {
     this.salvando = true;
     this.service.addTemplate(this.data.id, this.form.value.conteudo).subscribe({
       next: (t: any) => { this.data.templates.unshift(t); this.form.reset(); this.salvando = false; },
-      error: () => { this.salvando = false; }
+      error: e => { this.salvando = false; this.snack.open(mensagemErro(e, 'Não foi possível salvar o modelo.'), 'OK', { duration: 4000 }); }
     });
   }
 }
@@ -154,7 +163,9 @@ export class TemplatesDialogComponent {
       }
       @for (v of vinculados; track v.insumoId) {
         <div class="vinculo">
-          <span class="nome">{{ v.insumoNome }}</span>
+          <span class="nome">{{ v.insumoNome }}
+            @if (!v.insumoAtivo) { <span class="inativo" matTooltip="Insumo desativado no estoque: não é descontado">(inativo)</span> }
+          </span>
           <span class="qtd">{{ v.quantidadeConsumida }} {{ v.unidadeMedida }} por exame</span>
           <button mat-icon-button color="warn" (click)="remover(v)" [disabled]="salvando" matTooltip="Remover">
             <mat-icon>delete_outline</mat-icon>
@@ -195,6 +206,7 @@ export class TemplatesDialogComponent {
     .vinculo { display:flex; align-items:center; gap:12px; padding:6px 0; border-bottom:1px solid #f0f0f0; }
     .vinculo .nome { flex:1; font-weight:500; }
     .vinculo .qtd { font-size:13px; color:#555; }
+    .vinculo .inativo { font-size:12px; font-weight:400; color:#c62828; }
     .linha { display:flex; gap:12px; }
     .campo-insumo { flex:2; min-width:0; }
     .campo-qtd { flex:1; min-width:0; }`]
@@ -235,7 +247,7 @@ export class InsumosExameDialogComponent {
     this.salvando = true;
     this.service.desvincularInsumo(this.data.tipo.id, v.insumoId).subscribe({
       next: () => { this.vinculados = this.vinculados.filter(x => x.insumoId !== v.insumoId); this.salvando = false; },
-      error: () => { this.salvando = false; }
+      error: e => { this.salvando = false; this.snack.open(mensagemErro(e, 'Não foi possível remover o insumo.'), 'OK', { duration: 4000 }); }
     });
   }
 }
@@ -267,7 +279,7 @@ export class TiposExameComponent implements OnInit {
 
   carregar() {
     this.loading = true;
-    this.service.getAll().subscribe({
+    this.service.getAll(undefined, true).subscribe({
       next: d => { this.tipos = d; this.loading = false; },
       error: () => { this.loading = false; }
     });
@@ -278,8 +290,8 @@ export class TiposExameComponent implements OnInit {
       .afterClosed().subscribe(val => {
         if (!val) return;
         this.service.create(val).subscribe({
-          next: () => { this.carregar(); this.snack.open('Tipo criado!', 'OK', { duration: 3000 }); },
-          error: () => this.snack.open('Erro ao criar.', 'OK', { duration: 3000 })
+          next: () => { this.carregar(); this.avisar('Tipo de exame cadastrado.'); },
+          error: e => this.avisar(mensagemErro(e, 'Não foi possível cadastrar o tipo de exame.'))
         });
       });
   }
@@ -289,17 +301,37 @@ export class TiposExameComponent implements OnInit {
       .afterClosed().subscribe(val => {
         if (!val) return;
         this.service.update(tipo.id, { ...val, ativo: tipo.ativo }).subscribe({
-          next: () => { this.carregar(); this.snack.open('Atualizado!', 'OK', { duration: 3000 }); },
-          error: () => this.snack.open('Erro.', 'OK', { duration: 3000 })
+          next: () => { this.carregar(); this.avisar('Tipo de exame atualizado.'); },
+          error: e => this.avisar(mensagemErro(e, 'Não foi possível atualizar o tipo de exame.'))
         });
       });
   }
 
   excluir(tipo: TipoExameDto) {
-    this.service.delete(tipo.id).subscribe({
-      next: () => { this.carregar(); this.snack.open('Desativado!', 'OK', { duration: 3000 }); },
-      error: () => this.snack.open('Erro.', 'OK', { duration: 3000 })
+    confirmar(this.dialog, {
+      titulo: 'Desativar tipo de exame',
+      mensagem: `${tipo.nome} deixa de ser oferecido em novas solicitações. As solicitações existentes não mudam, e você pode reativá-lo depois.`,
+      confirmar: 'Desativar',
+      perigoso: true
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.service.delete(tipo.id).subscribe({
+        next: () => { this.carregar(); this.avisar(`${tipo.nome} desativado.`); },
+        error: e => this.avisar(mensagemErro(e, 'Não foi possível desativar o tipo de exame.'))
+      });
     });
+  }
+
+  reativar(tipo: TipoExameDto) {
+    const { nome, descricao, prazoEstimadoDias } = tipo;
+    this.service.update(tipo.id, { nome, descricao, prazoEstimadoDias, ativo: true }).subscribe({
+      next: () => { this.carregar(); this.avisar(`${tipo.nome} reativado.`); },
+      error: e => this.avisar(mensagemErro(e, 'Não foi possível reativar o tipo de exame.'))
+    });
+  }
+
+  private avisar(mensagem: string) {
+    this.snack.open(mensagem, 'OK', { duration: 4000 });
   }
 
   insumos(tipo: TipoExameDto) {

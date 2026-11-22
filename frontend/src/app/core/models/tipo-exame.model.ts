@@ -23,6 +23,7 @@ export interface ExameInsumoDto {
   insumoNome: string;
   unidadeMedida: string;
   quantidadeConsumida: number;
+  insumoAtivo: boolean;
 }
 
 export interface CreateTipoExameInput {

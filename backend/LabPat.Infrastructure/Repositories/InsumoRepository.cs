@@ -13,4 +13,11 @@ public class InsumoRepository(AppDbContext context)
             .Where(i => i.Ativo)
             .OrderBy(i => i.Nome)
             .ToListAsync();
+
+    // Inativos por último, para o laboratório poder reativá-los
+    public async Task<IEnumerable<Insumo>> GetAllAsync(bool incluirInativos) =>
+        await Context.Insumos
+            .Where(i => incluirInativos || i.Ativo)
+            .OrderByDescending(i => i.Ativo).ThenBy(i => i.Nome)
+            .ToListAsync();
 }
