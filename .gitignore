@@ -22,3 +22,6 @@ Thumbs.db
 
 # Material do orientador (modelos, exemplos de outros alunos) - não publicar
 modelo prof marlon/
+
+# credenciais da publicação na Azure (nunca versionar)
+.azure-segredos.txt
