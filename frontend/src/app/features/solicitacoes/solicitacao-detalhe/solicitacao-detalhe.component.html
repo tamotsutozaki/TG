@@ -8,6 +8,12 @@
 
 @if (loading) {
   <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+} @else if (naoEncontrada) {
+  <mat-card class="empty-state">
+    <mat-icon>search_off</mat-icon>
+    <p>Solicitação não encontrada ou sem permissão de acesso.</p>
+    <button mat-flat-button color="primary" (click)="voltar()">Voltar para as solicitações</button>
+  </mat-card>
 } @else if (solicitacao) {
 
   <!-- Timeline de status -->

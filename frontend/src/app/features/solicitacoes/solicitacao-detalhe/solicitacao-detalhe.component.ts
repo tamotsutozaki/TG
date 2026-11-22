@@ -37,7 +37,9 @@ export class SolicitacaoDetalheComponent implements OnInit {
   laudo: LaudoDto | null = null;
   loading = true;
 
-  novoStatus = new FormControl<StatusSolicitacao | null>(null, Validators.required);
+  naoEncontrada = false;
+  // Sem validação de obrigatório: o botão já fica desabilitado sem escolha, e o campo ficava vermelho à toa
+  novoStatus = new FormControl<StatusSolicitacao | null>(null);
   observacao = new FormControl('');
   laudoConteudo = new FormControl('', Validators.required);
 
@@ -93,7 +95,7 @@ export class SolicitacaoDetalheComponent implements OnInit {
         this.calcularProximos();
         if (s.status === 'Concluido') this.carregarLaudo(s.id);
       },
-      error: () => { this.loading = false; }
+      error: () => { this.loading = false; this.naoEncontrada = true; }
     });
   }
 
